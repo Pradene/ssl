@@ -49,7 +49,8 @@ void set_sum(void);
 
 // Help and utility functions
 void print_help(void);
-void print_byte_binary(uint8_t byte);
-void print_buffer_hex_binary(char *buffer, uint64_t size);
+void print_buffer(char *buffer, uint64_t size);
+
+void md5(const char *s);
 
 #endif // FT_SSL_H
