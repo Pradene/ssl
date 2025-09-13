@@ -19,7 +19,7 @@ typedef struct {
 
 typedef struct {
   const char  *name;
-  algorithm   algo;
+  Algorithm   algorithm;
 } Command;
 
 static inline uint64_t align(uint64_t size, uint64_t alignment) {
@@ -104,8 +104,34 @@ const int32_t k[64] = {
   0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 };
 
+void print_byte_binary(uint8_t byte) {
+  for (int i = 7; i >= 0; --i) {
+    printf("%d", (byte >> i) & 1);
+  }
+}
+
+void print_buffer_hex_binary(char *buffer, uint64_t size) {
+  printf("Buffer (Hex + Binary):\n");
+  printf("Byte | Hex | Binary   | ASCII\n");
+  printf("-----|-----|----------|------\n");
+
+  for (uint64_t i = 0; i < size; i++) {
+    uint8_t byte = (uint8_t)buffer[i];
+    printf("%4lu | %02X  | ", i, byte);
+    print_byte_binary(byte);
+    printf(" | %c\n", (byte >= 32 && byte < 127) ? byte : '.');
+
+    // Add separator every 16 bytes
+    if ((i + 1) % 16 == 0 && i + 1 < size) {
+      printf("-----|-----|----------|------\n");
+    }
+  }
+  printf("-----|-----|----------|------\n");
+}
+
+
 int main(int argc, char *argv[]) {
-  if (argc < 2) {
+  if (argc < 3) {
     print_help();
     return (EXIT_FAILURE);
   }
@@ -114,7 +140,7 @@ int main(int argc, char *argv[]) {
   argv += 1;
   for (Command *cmd = commands; cmd->name; ++cmd) {
     if (strcmp(*argv, cmd->name) == 0) {
-      algorithm = cmd->algo;
+      algorithm = cmd->algorithm;
       argc -= 1;
       argv += 1;
       break;
@@ -122,14 +148,31 @@ int main(int argc, char *argv[]) {
   }
 
   if (algorithm == UNDEFINED) {
+    print_help();
     return (EXIT_FAILURE);
   }
 
   argv += parser_options(argc, argv);
-  uint64_t input_size = strlen(*argv);
-  uint64_t aligned_size = align(input_size + 1 + 64, 512);
-  printf("Aligned size: %lu\n", aligned_size);
 
+  uint64_t  input_size = strlen(*argv);
+  uint64_t  aligned_size = align(input_size + 1 + 8, 64);
+  char      *buffer = (char *)malloc(sizeof(char) * aligned_size);
+  if (buffer == NULL) {
+    const char error[] = "Memory allocation failed\n";
+    write(2, error, strlen(error));
+    return (EXIT_FAILURE);
+  }
+
+  uint8_t   padding_byte = 0x80;
+
+  memcpy(buffer, *argv, input_size);
+  memcpy(buffer + input_size, &padding_byte, 1);
+  memset(buffer + input_size + 1, 0, aligned_size - input_size - 1 - 8);
+  memcpy(buffer + aligned_size - 8, &input_size, sizeof(uint64_t));
+
+  print_buffer_hex_binary(buffer, aligned_size);
+
+  free(buffer);
   return (EXIT_SUCCESS);
 }
 
