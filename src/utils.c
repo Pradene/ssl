@@ -6,11 +6,12 @@ void print_buffer(char *buffer, uint64_t size) {
     for (int i = 7; i >= 0; --i) {
       printf("%d", (byte >> i) & 1);
     }
-    printf(" ");
 
     // Add separator every 8 bytes
     if ((i + 1) % 8 == 0 && i + 1 < size) {
       printf("\n");
+    } else {
+      printf(" ");
     }
   }
   printf("\n");
