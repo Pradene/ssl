@@ -34,11 +34,6 @@ extern bool print_sum;
 extern Command commands[];
 extern Option options[];
 
-// Utility functions
-static inline uint64_t align(uint64_t size, uint64_t alignment) {
-    return (size + alignment - 1) & ~(alignment - 1);
-}
-
 int parse_options(int argc, char *argv[]);
 
 // Option handlers

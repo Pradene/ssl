@@ -1,6 +1,35 @@
 #include "ft_ssl.h"
 
-const int32_t k[64] = {
+static inline uint64_t align(uint64_t size, uint64_t alignment) {
+  return (size + alignment - 1) & ~(alignment - 1);
+}
+
+static char *md5_preprocess(const char *string, uint64_t *size) {
+  uint64_t  string_length = strlen(string);
+  uint64_t  string_length_bits = string_length * 8;
+  (*size) = align(string_length + 1 + 8, 64);
+
+  char      *buffer = (char *)malloc(sizeof(char) * (*size));
+  if (buffer == NULL) {
+    const char error_msg[] = "Memory allocation failed\n";
+    write(2, error_msg, strlen(error_msg));
+    exit(EXIT_FAILURE);
+  }
+
+  memcpy(buffer, string, string_length);
+  memset(buffer + string_length, 0x80, 1);
+  memset(buffer + string_length + 1, 0x00, (*size) - string_length - 1 - sizeof(uint64_t));
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+  memcpy(buffer + (*size) - sizeof(uint64_t), &string_length_bits, sizeof(uint64_t));
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+  uint64_t swapped = __builtin_bswap64(string_length_bits);
+  memcpy(buffer + (*size) - sizeof(uint64_t), &swapped, sizeof(uint64_t));
+#endif
+
+  return (buffer);
+}
+
+static const uint32_t k[64] = {
   0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
   0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
   0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
@@ -19,44 +48,95 @@ const int32_t k[64] = {
   0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 };
 
-const int32_t s[64] = {
+static const uint32_t s[64] = {
   7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,
   5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,
   4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,
   6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21
 };
 
-const uint32_t h0 = 0x67452301;
-const uint32_t h1 = 0xefcdab89;
-const uint32_t h2 = 0x98badcfe;
-const uint32_t h3 = 0x10325476;
+static const uint32_t h0 = 0x67452301;
+static const uint32_t h1 = 0xefcdab89;
+static const uint32_t h2 = 0x98badcfe;
+static const uint32_t h3 = 0x10325476;
 
-char *md5_preprocess(const char *s) {
-  uint64_t  input_size = strlen(s);
-  uint64_t  aligned_size = align(input_size + 1 + 8, 64);
-
-  char      *buffer = (char *)malloc(sizeof(char) * aligned_size);
-  if (buffer == NULL) {
-    const char error[] = "Memory allocation failed\n";
-    write(2, error, strlen(error));
-    exit(EXIT_FAILURE);
-  }
-
-  uint64_t  input_size_bits = input_size * 8;
-
-  // Prepare buffer with padding
-  memcpy(buffer, s, input_size);
-  memset(buffer + input_size, 0x80, 1);
-  memset(buffer + input_size + 1, 0x00, aligned_size - input_size - 1 - 8);
-  memcpy(buffer + aligned_size - 8, &input_size_bits, sizeof(uint64_t));
-
-  print_buffer(buffer, aligned_size);
-
-  return (buffer);
+// MD5 helper functions
+static inline uint32_t F(uint32_t x, uint32_t y, uint32_t z, uint32_t i) {
+  if (i < 16)
+    return ((x & y) | ((~x) & z));
+  if (i < 32)
+    return ((x & z) | (y & (~z)));
+  if (i < 48)
+    return (x ^ y ^ z);
+  else
+    return (y ^ (x | (~z)));
 }
 
-void md5(const char *s) {
-  char *buffer = md5_preprocess(s);
+static inline uint32_t G(uint32_t i) {
+  if (i < 16)
+    return (i);
+  if (i < 32)
+    return ((5 * i + 1) % 16);
+  if (i < 48)
+    return ((3 * i + 5) % 16);
+  else
+    return ((7 * i) % 16);
+}
+
+static inline uint32_t rotate(uint32_t value, uint32_t amount) {
+  return (value << amount) | (value >> (32 - amount));
+}
+
+void md5(const char *string) {
+  uint64_t  size = 0;
+  char      *buffer = md5_preprocess(string, &size);
+
+  uint32_t  A = h0;
+  uint32_t  B = h1;
+  uint32_t  C = h2;
+  uint32_t  D = h3;
+
+  for (uint64_t chunk = 0; chunk < size / 64; ++chunk) {
+    uint32_t w[16];
+    // Break chunk into sixteen 32-bit little-endian words
+    for (uint32_t i = 0; i < 16; ++i) {
+      w[i] = ((uint32_t)(unsigned char)buffer[chunk*64 + i*4 + 0] <<  0) |
+             ((uint32_t)(unsigned char)buffer[chunk*64 + i*4 + 1] <<  8) |
+             ((uint32_t)(unsigned char)buffer[chunk*64 + i*4 + 2] << 16) |
+             ((uint32_t)(unsigned char)buffer[chunk*64 + i*4 + 3] << 24);
+    }
+
+    uint32_t a = A;
+    uint32_t b = B;
+    uint32_t c = C;
+    uint32_t d = D;
+
+    for (uint32_t i = 0; i < 64; ++i) {
+      uint32_t f;
+      uint32_t g;
+
+      f = F(b, c, d, i);
+      g = G(i);
+
+      f = f + a + k[i] + w[g];
+      a = d;
+      d = c;
+      c = b;
+      b = b + rotate(f, s[i]);
+    }
+
+    A += a;
+    B += b;
+    C += c;
+    D += d;
+  }
+
+  printf("%.8x%.8x%.8x%.8x\n",
+         __builtin_bswap32(A),
+         __builtin_bswap32(B),
+         __builtin_bswap32(C),
+         __builtin_bswap32(D)
+  );
 
   free(buffer);
 }
