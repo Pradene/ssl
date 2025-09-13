@@ -4,7 +4,6 @@ CFLAGS   = -Wall -Wextra -Werror -g -I.
 
 SRCS_DIR = src
 OBJS_DIR = obj
-TEST_DIR = test
 
 SRCS      = $(wildcard $(SRCS_DIR)/*.c)
 OBJS      = $(patsubst $(SRCS_DIR)/%.c,$(OBJS_DIR)/%.o,$(SRCS))
