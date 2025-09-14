@@ -1,13 +1,8 @@
 #include "ft_ssl.h"
 
-void print_help(void) {
-  const char usage[] = "Usage: ./ft_ssl command [flags] string\n";
-  write(2, usage, strlen(usage));
-}
-
 int main(int argc, char *argv[]) {
-  if (argc < 3) {
-    print_help();
+  if (argc < 2) {
+    fprintf(stderr, "usage: ft_ssl command [flags] string\n");
     return (EXIT_FAILURE);
   }
 
@@ -16,7 +11,7 @@ int main(int argc, char *argv[]) {
 
   Command *command = parse_command(argc, argv);
   if (command == NULL) {
-    print_help();
+    fprintf(stderr, "ft_ssl: error: '%s' is an invalid command\n", *argv);
     return (EXIT_FAILURE);
   }
 
@@ -28,7 +23,12 @@ int main(int argc, char *argv[]) {
   argc -= offset;
   argv += offset;
 
-  command->handler(*argv);
+  while (argc) {
+    command->handler(*argv);
+    argc -= 1;
+    argv += 1;
+  }
+
   return (EXIT_SUCCESS);
 }
 
