@@ -1,5 +1,11 @@
 #include "ft_ssl.h"
 
+// Global variables
+extern bool quiet;
+extern bool print_input;
+extern bool reverse;
+extern bool print_sum;
+
 int main(int argc, char *argv[]) {
   if (argc < 2) {
     fprintf(stderr, "usage: ft_ssl command [flags] string\n");
@@ -18,7 +24,6 @@ int main(int argc, char *argv[]) {
   argc -= 1;
   argv += 1;
 
-  // Parse options
   int offset = parse_options(argc, argv);
   argc -= offset;
   argv += offset;
