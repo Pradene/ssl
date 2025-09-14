@@ -12,7 +12,6 @@ static inline uint64_t align(uint64_t size, uint64_t alignment) {
   return (size + alignment - 1) & ~(alignment - 1);
 }
 
-
 MDBuffer  md_strengthening(const char *src, uint64_t blocks_size, uint32_t length_endian) {
   MDBuffer  buffer = {0};
   uint64_t  src_length = strlen(src);
@@ -23,15 +22,14 @@ MDBuffer  md_strengthening(const char *src, uint64_t blocks_size, uint32_t lengt
   buffer.blocks_count = size / blocks_size;
   buffer.data = (char *)malloc(sizeof(char) * size);
   if (buffer.data == NULL) {
-    const char error_msg[] = "Memory allocation failed\n";
-    write(2, error_msg, strlen(error_msg));
+    fprintf(stderr, "Memory allocation failed\n");
     exit(EXIT_FAILURE);
   }
 
   memcpy(buffer.data, src, src_length);
   memset(buffer.data + src_length, 0x80, 1);
   memset(buffer.data + src_length + 1, 0x00, size - src_length - 1 - sizeof(uint64_t));
-  uint64_t length = to_endian(src_length_bits, length_endian);
+  uint64_t  length = to_endian(src_length_bits, length_endian);
   memcpy(buffer.data + size - sizeof(uint64_t), &length, sizeof(uint64_t));
   return (buffer);
 }
