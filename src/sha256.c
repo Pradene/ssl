@@ -1,5 +1,8 @@
 #include "ft_ssl.h"
 
+#define SHA256_BLOCK_SIZE 64
+#define SHA256_ROUNDS 64
+
 static const uint32_t h0 = 0x6a09e667;
 static const uint32_t h1 = 0xbb67ae85;
 static const uint32_t h2 = 0x3c6ef372;
@@ -25,7 +28,7 @@ static inline uint32_t rotate_right(uint32_t value, uint32_t amount) {
 }
 
 void sha256(const char *string) {
-  MDBuffer  buffer = md_strengthening(string, 64, BIG_ENDIAN);
+  MDBuffer  buffer = md_strengthening(string, SHA256_BLOCK_SIZE, BIG_ENDIAN);
 
   uint32_t  A = h0;
   uint32_t  B = h1;
@@ -60,7 +63,7 @@ void sha256(const char *string) {
     uint32_t  g = G;
     uint32_t  h = H;
 
-    for (uint32_t i = 0; i < 64; ++i) {
+    for (uint32_t i = 0; i < SHA256_ROUNDS; ++i) {
       uint32_t s1 = rotate_right(e, 6) ^ rotate_right(e, 11) ^ rotate_right(e, 25);
       uint32_t ch = (e & f) ^ ((~e) & g);
       uint32_t t1 = h + s1 + ch + k[i] + w[i];
