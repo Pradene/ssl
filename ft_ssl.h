@@ -8,12 +8,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-typedef enum {
-    MD5,
-    SHA256,
-    UNDEFINED,
-} Algorithm;
-
 typedef struct {
     const char  *name;
     const char  *description;
@@ -22,11 +16,10 @@ typedef struct {
 
 typedef struct {
     const char  *name;
-    Algorithm   algorithm;
+    void        (*handler)(const char *input);
 } Command;
 
 // Global variables (declared as extern)
-extern Algorithm algorithm;
 extern bool quiet;
 extern bool print_input;
 extern bool reverse;
@@ -36,16 +29,11 @@ extern Option options[];
 
 int parse_options(int argc, char *argv[]);
 
-// Option handlers
-void set_print(void);
-void set_quiet(void);
-void set_reverse(void);
-void set_sum(void);
-
 // Help and utility functions
-void print_help(void);
 void print_buffer(char *buffer, uint64_t size);
 
+// Algorithms
+void sha256(const char *string);
 void md5(const char *s);
 
 #endif // FT_SSL_H

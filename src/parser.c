@@ -1,24 +1,9 @@
 #include "ft_ssl.h"
 
-Algorithm algorithm = UNDEFINED;
 bool quiet = false;
 bool print_input = false;
 bool reverse = false;
 bool print_sum = false;
-
-Command commands[] = {
-    {"md5", MD5},
-    {"sha256", SHA256},
-    {NULL, 0}
-};
-
-Option options[] = {
-    {"-p", "Print STDIN to STDOUT", set_print},
-    {"-q", "Quiet mode", set_quiet},
-    {"-r", "Reverse output format", set_reverse},
-    {"-s", "Print the sum of the given string", set_sum},
-    {NULL, NULL, NULL}
-};
 
 void set_print(void) {
     print_input = true;
@@ -35,6 +20,14 @@ void set_reverse(void) {
 void set_sum(void) {
     print_sum = true;
 }
+
+Option options[] = {
+    {"-p", "Print STDIN to STDOUT", set_print},
+    {"-q", "Quiet mode", set_quiet},
+    {"-r", "Reverse output format", set_reverse},
+    {"-s", "Print the sum of the given string", set_sum},
+    {NULL, NULL, NULL}
+};
 
 int parse_options(int argc, char *argv[]) {
     int   offset;
