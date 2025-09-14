@@ -9,6 +9,12 @@
 #include <stdbool.h>
 
 typedef struct {
+    char     *data;
+    uint64_t  blocks_size;
+    uint64_t  blocks_count;
+} MDBuffer;
+
+typedef struct {
     const char  *name;
     const char  *description;
     void        (*handler)(void);
@@ -18,6 +24,10 @@ typedef struct {
     const char  *name;
     void        (*handler)(const char *input);
 } Command;
+
+
+// Preprocessing
+MDBuffer  md_strengthening(const char *src, uint64_t blocks_size);
 
 // Parsing
 Command *parse_command(int argc, char *argv[]);

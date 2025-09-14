@@ -1,34 +1,5 @@
 #include "ft_ssl.h"
 
-static inline uint64_t align(uint64_t size, uint64_t alignment) {
-  return (size + alignment - 1) & ~(alignment - 1);
-}
-
-static char *md5_preprocess(const char *string, uint64_t *size) {
-  uint64_t  string_length = strlen(string);
-  uint64_t  string_length_bits = string_length * 8;
-  (*size) = align(string_length + 1 + 8, 64);
-
-  char      *buffer = (char *)malloc(sizeof(char) * (*size));
-  if (buffer == NULL) {
-    const char error_msg[] = "Memory allocation failed\n";
-    write(2, error_msg, strlen(error_msg));
-    exit(EXIT_FAILURE);
-  }
-
-  memcpy(buffer, string, string_length);
-  memset(buffer + string_length, 0x80, 1);
-  memset(buffer + string_length + 1, 0x00, (*size) - string_length - 1 - sizeof(uint64_t));
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-  memcpy(buffer + (*size) - sizeof(uint64_t), &string_length_bits, sizeof(uint64_t));
-#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-  uint64_t swapped = __builtin_bswap64(string_length_bits);
-  memcpy(buffer + (*size) - sizeof(uint64_t), &swapped, sizeof(uint64_t));
-#endif
-
-  return (buffer);
-}
-
 static const uint32_t k[64] = {
   0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
   0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
@@ -86,14 +57,14 @@ static inline uint32_t F(uint32_t x, uint32_t y, uint32_t z, uint32_t i) {
 }
 
 static const uint32_t g_lookup[64] = {
-    // Round 1: i
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-    // Round 2: (5*i + 1) % 16
-    1, 6, 11, 0, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12,
-    // Round 3: (3*i + 5) % 16
-    5, 8, 11, 14, 1, 4, 7, 10, 13, 0, 3, 6, 9, 12, 15, 2,
-    // Round 4: (7*i) % 16
-    0, 7, 14, 5, 12, 3, 10, 1, 8, 15, 6, 13, 4, 11, 2, 9
+  // Round 1: i
+  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+  // Round 2: (5*i + 1) % 16
+  1,  6, 11,  0,  5, 10, 15,  4,  9, 14,  3,  8, 13,  2,  7, 12,
+  // Round 3: (3*i + 5) % 16
+  5,  8, 11, 14,  1,  4,  7, 10, 13,  0,  3,  6,  9, 12, 15,  2,
+  // Round 4: (7*i) % 16
+  0,  7, 14,  5, 12,  3, 10,  1,  8, 15,  6, 13,  4, 11,  2,  9
 };
 
 static inline uint32_t G(uint32_t i) {
@@ -105,22 +76,21 @@ static inline uint32_t rotate(uint32_t value, uint32_t amount) {
 }
 
 void md5(const char *string) {
-  uint64_t  size = 0;
-  char      *buffer = md5_preprocess(string, &size);
+  MDBuffer  buffer = md_strengthening(string, 64);
 
   uint32_t  A = h0;
   uint32_t  B = h1;
   uint32_t  C = h2;
   uint32_t  D = h3;
 
-  for (uint64_t chunk = 0; chunk < size / 64; ++chunk) {
+  for (uint64_t chunk = 0; chunk < buffer.blocks_count; ++chunk) {
     uint32_t w[16];
     // Break chunk into sixteen 32-bit little-endian words
     for (uint32_t i = 0; i < 16; ++i) {
-      w[i] = ((uint32_t)(unsigned char)buffer[chunk*64 + i*4 + 0] <<  0) |
-             ((uint32_t)(unsigned char)buffer[chunk*64 + i*4 + 1] <<  8) |
-             ((uint32_t)(unsigned char)buffer[chunk*64 + i*4 + 2] << 16) |
-             ((uint32_t)(unsigned char)buffer[chunk*64 + i*4 + 3] << 24);
+      w[i] = ((uint32_t)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 0] <<  0) |
+             ((uint32_t)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 1] <<  8) |
+             ((uint32_t)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 2] << 16) |
+             ((uint32_t)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 3] << 24);
     }
 
     uint32_t a = A;
@@ -155,5 +125,5 @@ void md5(const char *string) {
          __builtin_bswap32(D)
   );
 
-  free(buffer);
+  free(buffer.data);
 }
