@@ -61,26 +61,43 @@ static const uint32_t h2 = 0x98badcfe;
 static const uint32_t h3 = 0x10325476;
 
 // MD5 helper functions
-static inline uint32_t F(uint32_t x, uint32_t y, uint32_t z, uint32_t i) {
-  if (i < 16)
+static inline uint32_t f_round1(uint32_t x, uint32_t y, uint32_t z) {
     return ((x & y) | ((~x) & z));
-  if (i < 32)
+}
+
+static inline uint32_t f_round2(uint32_t x, uint32_t y, uint32_t z) {
     return ((x & z) | (y & (~z)));
-  if (i < 48)
+}
+
+static inline uint32_t f_round3(uint32_t x, uint32_t y, uint32_t z) {
     return (x ^ y ^ z);
-  else
+}
+
+static inline uint32_t f_round4(uint32_t x, uint32_t y, uint32_t z) {
     return (y ^ (x | (~z)));
 }
 
+static uint32_t (*f_functions[4])(uint32_t, uint32_t, uint32_t) = {
+    f_round1, f_round2, f_round3, f_round4
+};
+
+static inline uint32_t F(uint32_t x, uint32_t y, uint32_t z, uint32_t i) {
+    return f_functions[i / 16](x, y, z);
+}
+
+static const uint32_t g_lookup[64] = {
+    // Round 1: i
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    // Round 2: (5*i + 1) % 16
+    1, 6, 11, 0, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12,
+    // Round 3: (3*i + 5) % 16
+    5, 8, 11, 14, 1, 4, 7, 10, 13, 0, 3, 6, 9, 12, 15, 2,
+    // Round 4: (7*i) % 16
+    0, 7, 14, 5, 12, 3, 10, 1, 8, 15, 6, 13, 4, 11, 2, 9
+};
+
 static inline uint32_t G(uint32_t i) {
-  if (i < 16)
-    return (i);
-  if (i < 32)
-    return ((5 * i + 1) % 16);
-  if (i < 48)
-    return ((3 * i + 5) % 16);
-  else
-    return ((7 * i) % 16);
+    return g_lookup[i];
 }
 
 static inline uint32_t rotate(uint32_t value, uint32_t amount) {
