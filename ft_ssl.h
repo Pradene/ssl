@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <endian.h>
 
 typedef struct {
     char     *data;
@@ -27,7 +28,7 @@ typedef struct {
 
 
 // Preprocessing
-MDBuffer  md_strengthening(const char *src, uint64_t blocks_size);
+MDBuffer  md_strengthening(const char *src, uint64_t blocks_size, uint32_t length_endian);
 
 // Parsing
 Command *parse_command(int argc, char *argv[]);

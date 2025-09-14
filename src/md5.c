@@ -71,12 +71,12 @@ static inline uint32_t G(uint32_t i) {
     return g_lookup[i];
 }
 
-static inline uint32_t rotate(uint32_t value, uint32_t amount) {
+static inline uint32_t rotate_left(uint32_t value, uint32_t amount) {
   return (value << amount) | (value >> (32 - amount));
 }
 
 void md5(const char *string) {
-  MDBuffer  buffer = md_strengthening(string, 64);
+  MDBuffer  buffer = md_strengthening(string, 64, LITTLE_ENDIAN);
 
   uint32_t  A = h0;
   uint32_t  B = h1;
@@ -109,7 +109,7 @@ void md5(const char *string) {
       a = d;
       d = c;
       c = b;
-      b = b + rotate(f, s[i]);
+      b = b + rotate_left(f, s[i]);
     }
 
     A += a;
