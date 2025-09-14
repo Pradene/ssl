@@ -51,3 +51,22 @@ int parse_options(int argc, char *argv[]) {
     return (offset);
 }
 
+Command commands[] = {
+    {"md5", md5},
+    {"sha256", sha256},
+    {NULL, NULL}
+};
+
+Command* parse_command(int argc, char *argv[]) {
+  if (argc < 1) {
+    return (NULL);
+  }
+
+  for (Command *cmd = commands; cmd->name; ++cmd) {
+    if (strcmp(argv[0], cmd->name) == 0) {
+      return (cmd);
+    }
+  }
+
+  return (NULL);
+}

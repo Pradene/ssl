@@ -27,6 +27,7 @@ extern bool print_sum;
 extern Command commands[];
 extern Option options[];
 
+Command *parse_command(int argc, char *argv[]);
 int parse_options(int argc, char *argv[]);
 
 // Help and utility functions
