@@ -1,14 +1,12 @@
 #include "ft_ssl.h"
 
-static const uint32_t MD5_ROUNDS = 64;
-
 static const HashConfig MD5_CONFIG = {
   .blocks_size = 64,
-  .length_size = sizeof(uint64_t),
+  .length_size = sizeof(u64),
   .length_endian = LITTLE_ENDIAN
 };
 
-static const uint32_t k[64] = {
+static const u32 k[64] = {
   0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
   0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
   0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
@@ -27,44 +25,39 @@ static const uint32_t k[64] = {
   0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 };
 
-static const uint32_t s[64] = {
+static const u32 s[64] = {
   7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,
   5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,
   4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,
   6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21
 };
 
-static const uint32_t h0 = 0x67452301;
-static const uint32_t h1 = 0xefcdab89;
-static const uint32_t h2 = 0x98badcfe;
-static const uint32_t h3 = 0x10325476;
-
 // MD5 helper functions
-static inline uint32_t f_round1(uint32_t x, uint32_t y, uint32_t z) {
-    return ((x & y) | ((~x) & z));
+static inline u32 f_round1(u32 x, u32 y, u32 z) {
+  return ((x & y) | ((~x) & z));
 }
 
-static inline uint32_t f_round2(uint32_t x, uint32_t y, uint32_t z) {
-    return ((x & z) | (y & (~z)));
+static inline u32 f_round2(u32 x, u32 y, u32 z) {
+  return ((x & z) | (y & (~z)));
 }
 
-static inline uint32_t f_round3(uint32_t x, uint32_t y, uint32_t z) {
-    return (x ^ y ^ z);
+static inline u32 f_round3(u32 x, u32 y, u32 z) {
+  return (x ^ y ^ z);
 }
 
-static inline uint32_t f_round4(uint32_t x, uint32_t y, uint32_t z) {
-    return (y ^ (x | (~z)));
+static inline u32 f_round4(u32 x, u32 y, u32 z) {
+  return (y ^ (x | (~z)));
 }
 
-static uint32_t (*f_functions[4])(uint32_t, uint32_t, uint32_t) = {
-    f_round1, f_round2, f_round3, f_round4
+static u32 (*f_functions[4])(u32, u32, u32) = {
+  f_round1, f_round2, f_round3, f_round4
 };
 
-static inline uint32_t F(uint32_t x, uint32_t y, uint32_t z, uint32_t i) {
-    return f_functions[i / 16](x, y, z);
+static inline u32 F(u32 x, u32 y, u32 z, u32 i) {
+  return f_functions[i / 16](x, y, z);
 }
 
-static const uint32_t g_lookup[64] = {
+static const u32 g_lookup[64] = {
   // Round 1: i
   0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
   // Round 2: (5*i + 1) % 16
@@ -75,40 +68,37 @@ static const uint32_t g_lookup[64] = {
   0,  7, 14,  5, 12,  3, 10,  1,  8, 15,  6, 13,  4, 11,  2,  9
 };
 
-static inline uint32_t G(uint32_t i) {
-    return g_lookup[i];
-}
-
-static inline uint32_t rotate_left(uint32_t value, uint32_t amount) {
-  return (value << amount) | (value >> (32 - amount));
+static inline u32 G(u32 i) {
+  return g_lookup[i];
 }
 
 void md5(const char *string) {
   MDBuffer  buffer = merkle_damgard_preprocess(string, MD5_CONFIG);
 
-  uint32_t  A = h0;
-  uint32_t  B = h1;
-  uint32_t  C = h2;
-  uint32_t  D = h3;
+  u32 A = 0x67452301;
+  u32 B = 0xefcdab89;
+  u32 C = 0x98badcfe;
+  u32 D = 0x10325476;
 
-  for (uint64_t chunk = 0; chunk < buffer.blocks_count; ++chunk) {
-    uint32_t w[16];
+  for (u64 chunk = 0; chunk < buffer.blocks_count; ++chunk) {
+    u32 w[16];
     // Break chunk into sixteen 32-bit little-endian words
-    for (uint32_t i = 0; i < 16; ++i) {
-      w[i] = ((uint32_t)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 0] <<  0) |
-             ((uint32_t)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 1] <<  8) |
-             ((uint32_t)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 2] << 16) |
-             ((uint32_t)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 3] << 24);
+    for (u32 i = 0; i < 16; ++i) {
+      w[i] = ((u32)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 0] <<  0) |
+             ((u32)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 1] <<  8) |
+             ((u32)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 2] << 16) |
+             ((u32)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 3] << 24);
     }
 
-    uint32_t a = A;
-    uint32_t b = B;
-    uint32_t c = C;
-    uint32_t d = D;
+    u32 a = A;
+    u32 b = B;
+    u32 c = C;
+    u32 d = D;
 
-    for (uint32_t i = 0; i < MD5_ROUNDS; ++i) {
-      uint32_t f;
-      uint32_t g;
+    const u32 MD5_ROUNDS = 64;
+    for (u32 i = 0; i < MD5_ROUNDS; ++i) {
+      u32 f;
+      u32 g;
 
       f = F(b, c, d, i);
       g = G(i);
@@ -117,7 +107,7 @@ void md5(const char *string) {
       a = d;
       d = c;
       c = b;
-      b = b + rotate_left(f, s[i]);
+      b = b + rotu32l(f, s[i]);
     }
 
     A += a;

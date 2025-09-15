@@ -9,6 +9,11 @@
 #include <stdbool.h>
 #include <endian.h>
 
+typedef uint8_t  u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+
 typedef struct {
     uint64_t blocks_size;
     uint32_t length_size;
@@ -36,11 +41,15 @@ typedef struct {
 MDBuffer  merkle_damgard_preprocess(const char *src, HashConfig config);
 
 // Parsing
-Command *parse_command(int argc, char *argv[]);
-int     parse_options(int argc, char *argv[]);
+Command *parse_command(u32 argc, char *argv[]);
+u32     parse_options(u32 argc, char *argv[]);
 
 // Algorithms
 void sha256(const char *string);
 void md5(const char *s);
+
+// Utils
+u32 rotu32l(u32 value, u32 amount);
+u32 rotu32r(u32 value, u32 amount);
 
 #endif // FT_SSL_H

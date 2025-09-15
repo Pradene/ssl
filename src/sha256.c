@@ -1,22 +1,12 @@
 #include "ft_ssl.h"
 
-static const uint32_t SHA256_ROUNDS = 64;
 static const HashConfig SHA256_CONFIG = {
   .blocks_size = 64,
-  .length_size = sizeof(uint64_t),
+  .length_size = sizeof(u64),
   .length_endian = BIG_ENDIAN
 };
 
-static const uint32_t h0 = 0x6a09e667;
-static const uint32_t h1 = 0xbb67ae85;
-static const uint32_t h2 = 0x3c6ef372;
-static const uint32_t h3 = 0xa54ff53a;
-static const uint32_t h4 = 0x510e527f;
-static const uint32_t h5 = 0x9b05688c;
-static const uint32_t h6 = 0x1f83d9ab;
-static const uint32_t h7 = 0x5be0cd19;
-
-static const uint32_t k[64] = {
+static const u32 k[64] = {
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
   0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
   0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -35,54 +25,51 @@ static const uint32_t k[64] = {
   0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-static inline uint32_t rotate_right(uint32_t value, uint32_t amount) {
-  return (value >> amount) | (value << (32 - amount));
-}
-
 void sha256(const char *string) {
   MDBuffer  buffer = merkle_damgard_preprocess(string, SHA256_CONFIG);
 
-  uint32_t  A = h0;
-  uint32_t  B = h1;
-  uint32_t  C = h2;
-  uint32_t  D = h3;
-  uint32_t  E = h4;
-  uint32_t  F = h5;
-  uint32_t  G = h6;
-  uint32_t  H = h7;
+  u32 A = 0x6a09e667;
+  u32 B = 0xbb67ae85;
+  u32 C = 0x3c6ef372;
+  u32 D = 0xa54ff53a;
+  u32 E = 0x510e527f;
+  u32 F = 0x9b05688c;
+  u32 G = 0x1f83d9ab;
+  u32 H = 0x5be0cd19;
 
-  for (uint32_t chunk = 0; chunk < buffer.blocks_count; ++chunk) {
-    uint32_t w[64];
+  for (u32 chunk = 0; chunk < buffer.blocks_count; ++chunk) {
+    u32 w[64];
 
-    for (uint32_t i = 0; i < 16; ++i) {
+    for (u32 i = 0; i < 16; ++i) {
       // Break chunk into sixteen 32-bit big-endian words
-      w[i] = ((uint32_t)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 0] << 24) |
-             ((uint32_t)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 1] << 16) |
-             ((uint32_t)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 2] <<  8) |
-             ((uint32_t)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 3] <<  0);
+      w[i] = ((u32)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 0] << 24) |
+             ((u32)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 1] << 16) |
+             ((u32)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 2] <<  8) |
+             ((u32)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 3] <<  0);
     }
-    for (uint32_t i = 16; i < 64; ++i) {
-      uint32_t s0 = (rotate_right(w[i-15], 7)) ^ (rotate_right(w[i-15], 18)) ^ (w[i-15] >> 3);
-      uint32_t s1 = (rotate_right(w[i-2], 17)) ^ (rotate_right(w[i-2], 19)) ^ (w[i-2] >> 10);
+    for (u32 i = 16; i < 64; ++i) {
+      u32 s0 = (rotu32r(w[i-15], 7)) ^ (rotu32r(w[i-15], 18)) ^ (w[i-15] >> 3);
+      u32 s1 = (rotu32r(w[i-2], 17)) ^ (rotu32r(w[i-2], 19)) ^ (w[i-2] >> 10);
       w[i] = w[i-16] + s0 + w[i-7] + s1;
     }
 
-    uint32_t  a = A;
-    uint32_t  b = B;
-    uint32_t  c = C;
-    uint32_t  d = D;
-    uint32_t  e = E;
-    uint32_t  f = F;
-    uint32_t  g = G;
-    uint32_t  h = H;
+    u32  a = A;
+    u32  b = B;
+    u32  c = C;
+    u32  d = D;
+    u32  e = E;
+    u32  f = F;
+    u32  g = G;
+    u32  h = H;
 
-    for (uint32_t i = 0; i < SHA256_ROUNDS; ++i) {
-      uint32_t s1 = rotate_right(e, 6) ^ rotate_right(e, 11) ^ rotate_right(e, 25);
-      uint32_t ch = (e & f) ^ ((~e) & g);
-      uint32_t t1 = h + s1 + ch + k[i] + w[i];
-      uint32_t s0 = rotate_right(a, 2) ^ rotate_right(a, 13) ^ rotate_right(a, 22);
-      uint32_t mj = (a & b) ^ (a & c) ^ (b & c);
-      uint32_t t2 = s0 + mj;
+    const u32 SHA256_ROUNDS = 64;
+    for (u32 i = 0; i < SHA256_ROUNDS; ++i) {
+      u32 s1 = rotu32r(e, 6) ^ rotu32r(e, 11) ^ rotu32r(e, 25);
+      u32 ch = (e & f) ^ ((~e) & g);
+      u32 t1 = h + s1 + ch + k[i] + w[i];
+      u32 s0 = rotu32r(a, 2) ^ rotu32r(a, 13) ^ rotu32r(a, 22);
+      u32 mj = (a & b) ^ (a & c) ^ (b & c);
+      u32 t2 = s0 + mj;
 
       h = g;
       g = f;

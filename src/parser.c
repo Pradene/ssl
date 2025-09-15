@@ -29,8 +29,8 @@ Option options[] = {
     {NULL, NULL, NULL}
 };
 
-int parse_options(int argc, char *argv[]) {
-    int   offset;
+u32 parse_options(u32 argc, char *argv[]) {
+    u32   offset;
     bool  is_flag = false;
 
     for (offset = 0; offset < argc; ++offset) {
@@ -57,7 +57,7 @@ Command commands[] = {
     {NULL, NULL}
 };
 
-Command* parse_command(int argc, char *argv[]) {
+Command* parse_command(u32 argc, char *argv[]) {
   if (argc < 1) {
     return (NULL);
   }
