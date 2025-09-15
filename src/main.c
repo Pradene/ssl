@@ -8,7 +8,7 @@ extern bool print_sum;
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
-    fprintf(stderr, "usage: ft_ssl command [flags] string\n");
+    ft_fprintf(stderr, "usage: ft_ssl command [flags] string\n");
     exit(EXIT_FAILURE);
   }
 
@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
   Command *command = parse_command(argc, argv);
   if (command == NULL) {
-    fprintf(stderr, "ft_ssl: error: '%s' is an invalid command\n", *argv);
+    ft_fprintf(stderr, "ft_ssl: error: '%s' is an invalid command\n", *argv);
     exit(EXIT_FAILURE);
   }
 

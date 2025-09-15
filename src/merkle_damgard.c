@@ -22,7 +22,7 @@ MDBuffer  merkle_damgard_preprocess(const char *src, HashConfig config) {
   buffer.blocks_count = size / config.blocks_size;
   buffer.data = (char *)malloc(sizeof(char) * size);
   if (buffer.data == NULL) {
-    fprintf(stderr, "Memory allocation failed\n");
+    ft_fprintf(stderr, "Memory allocation failed\n");
     exit(EXIT_FAILURE);
   }
 
