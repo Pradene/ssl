@@ -10,6 +10,12 @@
 #include <endian.h>
 
 typedef struct {
+    uint64_t blocks_size;
+    uint32_t length_size;
+    uint32_t length_endian;
+} HashConfig;
+
+typedef struct {
     char     *data;
     uint64_t  blocks_size;
     uint64_t  blocks_count;
@@ -26,9 +32,8 @@ typedef struct {
     void        (*handler)(const char *input);
 } Command;
 
-
 // Preprocessing
-MDBuffer  md_strengthening(const char *src, uint64_t blocks_size, uint32_t length_endian);
+MDBuffer  merkle_damgard_preprocess(const char *src, HashConfig config);
 
 // Parsing
 Command *parse_command(int argc, char *argv[]);

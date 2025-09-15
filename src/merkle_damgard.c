@@ -12,24 +12,25 @@ static inline uint64_t align(uint64_t size, uint64_t alignment) {
   return (size + alignment - 1) & ~(alignment - 1);
 }
 
-MDBuffer  md_strengthening(const char *src, uint64_t blocks_size, uint32_t length_endian) {
+MDBuffer  merkle_damgard_preprocess(const char *src, HashConfig config) {
   MDBuffer  buffer = {0};
   uint64_t  src_length = strlen(src);
   uint64_t  src_length_bits = src_length * 8;
 
-  uint64_t  size = align(src_length + 1 + sizeof(uint64_t), blocks_size);
-  buffer.blocks_size = blocks_size;
-  buffer.blocks_count = size / blocks_size;
+  uint64_t  size = align(src_length + 1 + config.length_size, config.blocks_size);
+  buffer.blocks_size = config.blocks_size;
+  buffer.blocks_count = size / config.blocks_size;
   buffer.data = (char *)malloc(sizeof(char) * size);
   if (buffer.data == NULL) {
     fprintf(stderr, "Memory allocation failed\n");
     exit(EXIT_FAILURE);
   }
 
+  uint64_t  length = to_endian(src_length_bits, config.length_endian);
+
   memcpy(buffer.data, src, src_length);
   memset(buffer.data + src_length, 0x80, 1);
-  memset(buffer.data + src_length + 1, 0x00, size - src_length - 1 - sizeof(uint64_t));
-  uint64_t  length = to_endian(src_length_bits, length_endian);
-  memcpy(buffer.data + size - sizeof(uint64_t), &length, sizeof(uint64_t));
+  memset(buffer.data + src_length + 1, 0x00, size - src_length - 1 - config.length_size);
+  memcpy(buffer.data + size - config.length_size, &length, config.length_size);
   return (buffer);
 }

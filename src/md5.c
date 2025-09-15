@@ -1,7 +1,12 @@
 #include "ft_ssl.h"
 
-#define MD5_ROUNDS 64
-#define MD5_BLOCKS_SIZE 64
+static const uint32_t MD5_ROUNDS = 64;
+
+static const HashConfig MD5_CONFIG = {
+  .blocks_size = 64,
+  .length_size = sizeof(uint64_t),
+  .length_endian = LITTLE_ENDIAN
+};
 
 static const uint32_t k[64] = {
   0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
@@ -79,7 +84,7 @@ static inline uint32_t rotate_left(uint32_t value, uint32_t amount) {
 }
 
 void md5(const char *string) {
-  MDBuffer  buffer = md_strengthening(string, MD5_BLOCKS_SIZE, LITTLE_ENDIAN);
+  MDBuffer  buffer = merkle_damgard_preprocess(string, MD5_CONFIG);
 
   uint32_t  A = h0;
   uint32_t  B = h1;
