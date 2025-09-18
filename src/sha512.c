@@ -70,8 +70,8 @@ void sha512_compress(void *_state, const u8 *block) {
   }
   
   for (u8 i = 16; i < 80; ++i) {
-    u64 s0 = rotu64r(w[i-15], 1) ^ rotu64r(w[i-15], 8) ^ (w[i-15] >> 7);
-    u64 s1 = rotu64r(w[i-2], 19) ^ rotu64r(w[i-2], 61) ^ (w[i-2] >> 6);
+    u64 s0 = ROTR64(w[i-15], 1) ^ ROTR64(w[i-15], 8) ^ (w[i-15] >> 7);
+    u64 s1 = ROTR64(w[i-2], 19) ^ ROTR64(w[i-2], 61) ^ (w[i-2] >> 6);
     w[i] = w[i-16] + s0 + w[i-7] + s1;
   }
 
@@ -87,10 +87,10 @@ void sha512_compress(void *_state, const u8 *block) {
 
   // Main loop
   for (u8 i = 0; i < 80; ++i) {
-    u64 s1 = rotu64r(e, 14) ^ rotu64r(e, 18) ^ rotu64r(e, 41);
+    u64 s1 = ROTR64(e, 14) ^ ROTR64(e, 18) ^ ROTR64(e, 41);
     u64 ch = (e & f) ^ ((~e) & g);
     u64 t1 = h + s1 + ch + SHA512_K[i] + w[i];
-    u64 s0 = rotu64r(a, 28) ^ rotu64r(a, 34) ^ rotu64r(a, 39);
+    u64 s0 = ROTR64(a, 28) ^ ROTR64(a, 34) ^ ROTR64(a, 39);
     u64 mj = (a & b) ^ (a & c) ^ (b & c);
     u64 t2 = s0 + mj;
 

@@ -102,7 +102,7 @@ void md5_compress(void *_state, const u8 *block) {
     a = d;
     d = c;
     c = b;
-    b = b + rotu32l(f, MD5_S[i]);
+    b = b + ROTL32(f, MD5_S[i]);
   }
 
   state[0] += a;

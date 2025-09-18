@@ -1,21 +1,5 @@
 #include "ft_ssl.h"
 
-inline u32 rotu32r(u32 value, u32 amount) {
-  return ((value >> amount) | (value << (32 - amount)));
-}
-
-inline u32 rotu32l(u32 value, u32 amount) {
-  return ((value << amount) | (value >> (32 - amount)));
-}
-
-inline u64 rotu64r(u64 value, u64 amount) {
-  return ((value >> amount) | (value << (64 - amount)));
-}
-
-inline u64 rotu64l(u64 value, u64 amount) {
-  return ((value << amount) | (value >> (64 - amount)));
-}
-
 inline u64 to_endian64(u64 value, u32 target_endian) {
   if ((target_endian == __ORDER_LITTLE_ENDIAN__ && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) ||
       (target_endian == __ORDER_BIG_ENDIAN__ && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)) {

@@ -13,6 +13,14 @@
 
 #include "libft.h"
 
+#define ROTR(value, amount, bits) (((value) >> ((amount) % (bits))) | ((value) << ((bits) - ((amount) % (bits)))))
+#define ROTL(value, amount, bits) (((value) << ((amount) % (bits))) | ((value) >> ((bits) - ((amount) % (bits)))))
+
+#define ROTR32(val, amt) ROTR(val, amt, 32)
+#define ROTL32(val, amt) ROTL(val, amt, 32)
+#define ROTR64(val, amt) ROTR(val, amt, 64)
+#define ROTL64(val, amt) ROTL(val, amt, 64)
+
 typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
@@ -111,11 +119,6 @@ void sha256_compress(void *_state, const u8 *block);
 void md5_compress(void *_state, const u8 *block);
 
 // Utils
-u32 rotu32l(u32 value, u32 amount);
-u32 rotu32r(u32 value, u32 amount);
-u64 rotu64l(u64 value, u64 amount);
-u64 rotu64r(u64 value, u64 amount);
-
 u64 to_endian64(u64 value, u32 target_endian);
 void print_digest(const u8 *digest, u32 size, const char *input, const char *algorithm_name);
 

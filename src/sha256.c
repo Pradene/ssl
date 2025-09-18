@@ -66,8 +66,8 @@ void sha256_compress(void *_state, const u8 *block) {
   }
   
   for (u32 i = 16; i < 64; ++i) {
-    u32 s0 = rotu32r(w[i-15], 7) ^ rotu32r(w[i-15], 18) ^ (w[i-15] >> 3);
-    u32 s1 = rotu32r(w[i-2], 17) ^ rotu32r(w[i-2], 19) ^ (w[i-2] >> 10);
+    u32 s0 = ROTR32(w[i-15], 7) ^ ROTR32(w[i-15], 18) ^ (w[i-15] >> 3);
+    u32 s1 = ROTR32(w[i-2], 17) ^ ROTR32(w[i-2], 19) ^ (w[i-2] >> 10);
     w[i] = w[i-16] + s0 + w[i-7] + s1;
   }
 
@@ -83,10 +83,10 @@ void sha256_compress(void *_state, const u8 *block) {
 
   // Main loop
   for (u32 i = 0; i < 64; ++i) {
-    u32 s1 = rotu32r(e, 6) ^ rotu32r(e, 11) ^ rotu32r(e, 25);
+    u32 s1 = ROTR32(e, 6) ^ ROTR32(e, 11) ^ ROTR32(e, 25);
     u32 ch = (e & f) ^ ((~e) & g);
     u32 t1 = h + s1 + ch + sha256_k[i] + w[i];
-    u32 s0 = rotu32r(a, 2) ^ rotu32r(a, 13) ^ rotu32r(a, 22);
+    u32 s0 = ROTR32(a, 2) ^ ROTR32(a, 13) ^ ROTR32(a, 22);
     u32 mj = (a & b) ^ (a & c) ^ (b & c);
     u32 t2 = s0 + mj;
 
