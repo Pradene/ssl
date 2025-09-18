@@ -15,7 +15,7 @@ static MerkleConfig sha256_config = {
   .length_size = 8,
   .length_endian = __ORDER_BIG_ENDIAN__,
   .compress = sha256_compress,
-  .initial_state = SHA256_STATE,
+  .initial_state = (u8 *)SHA256_STATE,
   .state_words = 8,
   .word_size = sizeof(u32),
 };

@@ -11,7 +11,7 @@ static MerkleConfig md5_config = {
   .length_size = 8,
   .length_endian = __ORDER_LITTLE_ENDIAN__,
   .compress = md5_compress,
-  .initial_state = MD5_STATE,
+  .initial_state = (u8 *)MD5_STATE,
   .state_words = 4,
   .word_size = sizeof(u32),
 };
@@ -72,7 +72,7 @@ static u32 (*f_functions[4])(u32, u32, u32) = {
 };
 
 static inline u32 MD5_F(u32 x, u32 y, u32 z, u32 i) {
-  return f_functions[i >> 4](x, y, z);
+  return (f_functions[i >> 4](x, y, z));
 }
 
 void md5_compress(void *_state, const u8 *block) {

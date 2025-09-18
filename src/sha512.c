@@ -15,7 +15,7 @@ static MerkleConfig sha512_config = {
   .length_size = 16,
   .length_endian = __ORDER_BIG_ENDIAN__,
   .compress = sha512_compress,
-  .initial_state = SHA512_STATE,
+  .initial_state = (u8 *)SHA512_STATE,
   .state_words = 8,
   .word_size = sizeof(u64),
 };

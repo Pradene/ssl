@@ -43,5 +43,5 @@ int main(int argc, char *argv[]) {
     hash_stdin(command->algorithm);
   }
 
-  return 0;
+  return (0);
 }

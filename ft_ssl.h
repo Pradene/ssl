@@ -52,10 +52,11 @@ typedef struct HashAlgorithm {
 typedef struct {
   u32   length_size;       // Size of length field in padding (bytes)
   u32   length_endian;     // Endianness of length field
-  void  (*compress)(void *_state, const u8 *block);  // Compression function
-  void  *initial_state;    // Initial hash values
+  u8    *initial_state;    // Initial hash values
   u32   state_words;       // Number of words in state
   u32   word_size;         // Size of one state word
+
+  void  (*compress)(void *_state, const u8 *block);  // Compression function
 } MerkleConfig;
 
 typedef struct {
