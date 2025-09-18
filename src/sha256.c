@@ -52,12 +52,21 @@ static const u32 sha256_k[64] = {
   0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-void sha256_compress(void *_state, const u8 *block) {
+void sha256_compress(u8 *_state, const u8 *block) {
   u32 *state = (u32 *)_state;
   u32 w[64];
-  u32 a, b, c, d, e, f, g, h;
+  
+  // Initialize working variables
+  u32 a = state[0];
+  u32 b = state[1];
+  u32 c = state[2];
+  u32 d = state[3];
+  u32 e = state[4];
+  u32 f = state[5];
+  u32 g = state[6];
+  u32 h = state[7];
 
-  // Prepare message schedule
+  // Convert block to big-endian words
   for (u32 i = 0; i < 16; ++i) {
     w[i] = ((u32)block[i*4 + 0] << 24) |
            ((u32)block[i*4 + 1] << 16) |
@@ -70,16 +79,6 @@ void sha256_compress(void *_state, const u8 *block) {
     u32 s1 = ROTR32(w[i-2], 17) ^ ROTR32(w[i-2], 19) ^ (w[i-2] >> 10);
     w[i] = w[i-16] + s0 + w[i-7] + s1;
   }
-
-  // Initialize working variables
-  a = state[0];
-  b = state[1];
-  c = state[2];
-  d = state[3];
-  e = state[4];
-  f = state[5];
-  g = state[6];
-  h = state[7];
 
   // Main loop
   for (u32 i = 0; i < 64; ++i) {

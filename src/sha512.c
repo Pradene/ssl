@@ -52,12 +52,21 @@ static const u64 SHA512_K[80] = {
   0x431d67c49c100d4c, 0x4cc5d4becb3e42b6, 0x597f299cfc657e2a, 0x5fcb6fab3ad6faec, 0x6c44198c4a475817
 };
 
-void sha512_compress(void *_state, const u8 *block) {
+void sha512_compress(u8 *_state, const u8 *block) {
   u64 *state = (u64 *)_state;
   u64 w[80];
-  u64 a, b, c, d, e, f, g, h;
 
-  // Prepare message schedule
+  // Initialize working variables
+  u64 a = state[0];
+  u64 b = state[1];
+  u64 c = state[2];
+  u64 d = state[3];
+  u64 e = state[4];
+  u64 f = state[5];
+  u64 g = state[6];
+  u64 h = state[7];
+
+  // Convert block to big-endian words
   for (u8 i = 0; i < 16; ++i) {
     w[i] = ((u64)block[i*8 + 0] << 56) |
            ((u64)block[i*8 + 1] << 48) |
@@ -74,16 +83,6 @@ void sha512_compress(void *_state, const u8 *block) {
     u64 s1 = ROTR64(w[i-2], 19) ^ ROTR64(w[i-2], 61) ^ (w[i-2] >> 6);
     w[i] = w[i-16] + s0 + w[i-7] + s1;
   }
-
-  // Initialize working variables
-  a = state[0];
-  b = state[1];
-  c = state[2];
-  d = state[3];
-  e = state[4];
-  f = state[5];
-  g = state[6];
-  h = state[7];
 
   // Main loop
   for (u8 i = 0; i < 80; ++i) {

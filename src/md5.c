@@ -75,10 +75,14 @@ static inline u32 MD5_F(u32 x, u32 y, u32 z, u32 i) {
   return (f_functions[i >> 4](x, y, z));
 }
 
-void md5_compress(void *_state, const u8 *block) {
+void md5_compress(u8 *_state, const u8 *block) {
   u32 *state = (u32 *)_state;
   u32 w[16];
-  u32 a, b, c, d;
+
+  u32 a = state[0];
+  u32 b = state[1];
+  u32 c = state[2];
+  u32 d = state[3];
 
   // Convert block to little-endian words
   for (u32 i = 0; i < 16; ++i) {
@@ -87,11 +91,6 @@ void md5_compress(void *_state, const u8 *block) {
            ((u32)block[i*4 + 2] << 16) |
            ((u32)block[i*4 + 3] << 24);
   }
-
-  a = state[0];
-  b = state[1];
-  c = state[2];
-  d = state[3];
 
   // Main loop
   for (u32 i = 0; i < 64; ++i) {

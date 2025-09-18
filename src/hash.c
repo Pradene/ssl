@@ -7,10 +7,9 @@ void hash_string(const char *string, const HashAlgorithm *alg) {
     return ;
   }
 
-  u8 digest[64] = {0};
-
   hash_update(ctx, (const u8 *)string, ft_strlen(string));
   
+  u8 digest[64] = {0};
   hash_finalize(ctx, digest);
   print_digest(digest, alg->digest_size, string, alg->name);
   
@@ -31,14 +30,13 @@ void hash_file(const char *filename, const HashAlgorithm *alg) {
     return ;
   }
 
-  u8 buffer[4096] = {0};
-  u8 digest[64] = {0};
+  u8      buffer[4096] = {0};
   ssize_t bytes_read;
-    
   while ((bytes_read = read(fd, buffer, sizeof(buffer))) > 0) {
     hash_update(ctx, buffer, bytes_read);
   }
   
+  u8 digest[64] = {0};
   hash_finalize(ctx, digest);
   print_digest(digest, alg->digest_size, filename, alg->name);
   
@@ -53,14 +51,13 @@ void hash_stdin(const HashAlgorithm *alg) {
     return ;
   }
 
-  u8 buffer[4096] = {0};
-  u8 digest[64] = {0};
+  u8      buffer[4096] = {0};
   ssize_t bytes_read;
-  
   while ((bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer))) > 0) {
     hash_update(ctx, buffer, bytes_read);
   }
   
+  u8 digest[64] = {0};
   hash_finalize(ctx, digest);
   print_digest(digest, alg->digest_size, NULL, alg->name);
   

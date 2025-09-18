@@ -4,7 +4,7 @@
 static void append_message_length(
   u8 *buffer,
   u64 offset,
-  u64 total_bits, 
+  u128 total_bits,
   u32 length_size,
   u32 endian
 ) {
@@ -64,7 +64,7 @@ static void output_digest(HashContext *ctx, u8 *digest) {
 }
 
 // Helper function to apply padding
-static void apply_padding(HashContext *ctx, u64 total_bits) {
+static void apply_padding(HashContext *ctx, u128 total_bits) {
   const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
   u64 message_length = ctx->buffer_length;
   
@@ -105,12 +105,12 @@ void merkle_damgard_init(HashContext *ctx) {
   ctx->buffer_length = 0;
 }
 
-void merkle_damgard_update(HashContext *ctx, const u8 *data, u64 len) {
+void merkle_damgard_update(HashContext *ctx, const u8 *data, u128 len) {
   const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
   
   ctx->total_length += len;
-  u64 remaining = len;
-  u64 offset = 0;
+  u128 remaining = len;
+  u128 offset = 0;
 
   // Complete partial block if exists
   if (ctx->buffer_length > 0) {
@@ -144,14 +144,14 @@ void merkle_damgard_update(HashContext *ctx, const u8 *data, u64 len) {
 
 void merkle_damgard_finalize(HashContext *ctx, u8 *digest) {
   const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
-  u64 total_bits = ctx->total_length * 8;
-  
+  u128 total_bits = ctx->total_length * 8;
+
   // Apply Merkle-Damgård padding
   apply_padding(ctx, total_bits);
-  
+
   // Final compression
   config->compress(ctx->state, ctx->buffer);
-  
+
   // Output digest in correct format
   output_digest(ctx, digest);
 }

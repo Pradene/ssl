@@ -29,7 +29,7 @@ void hash_destroy(HashContext *ctx) {
   }
 }
 
-void hash_update(HashContext *ctx, const u8 *data, u64 len) {
+void hash_update(HashContext *ctx, const u8 *data, u128 len) {
   ctx->algorithm->update(ctx, data, len);
 }
 

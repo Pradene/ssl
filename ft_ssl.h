@@ -21,10 +21,11 @@
 #define ROTR64(val, amt) ROTR(val, amt, 64)
 #define ROTL64(val, amt) ROTL(val, amt, 64)
 
-typedef uint8_t  u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
+typedef uint8_t     u8;
+typedef uint16_t    u16;
+typedef uint32_t    u32;
+typedef uint64_t    u64;
+typedef __uint128_t u128;
 
 typedef enum {
   HASH_TYPE_MERKLE_DAMGARD,
@@ -38,7 +39,7 @@ typedef struct HashContext {
   const HashAlgorithm *algorithm;
   u8                  *state;        // Current hash state
   u8                  *buffer;       // Input buffer for partial blocks
-  u64                 total_length;  // Total input length in bytes
+  u128                total_length;  // Total input length in bytes
   u32                 buffer_length; // Current buffer length
 } HashContext;
 
@@ -52,7 +53,7 @@ typedef struct HashAlgorithm {
 
   // Function pointers for algorithm operations
   void  (*init)(HashContext *ctx);
-  void  (*update)(HashContext *ctx, const u8 *data, u64 len);
+  void  (*update)(HashContext *ctx, const u8 *data, u128 len);
   void  (*finalize)(HashContext *ctx, u8 *digest);
   void  (*reset)(HashContext *ctx);
 } HashAlgorithm;
@@ -64,7 +65,7 @@ typedef struct {
   u32   state_words;       // Number of words in state
   u32   word_size;         // Size of one state word
 
-  void  (*compress)(void *_state, const u8 *block);  // Compression function
+  void  (*compress)(u8 *_state, const u8 *block);  // Compression function
 } MerkleConfig;
 
 typedef struct {
@@ -103,20 +104,20 @@ void hash_stdin(const HashAlgorithm *alg);
 // Generic hash operations
 HashContext *hash_create(const HashAlgorithm *algorithm);
 void hash_destroy(HashContext *ctx);
-void hash_update(HashContext *ctx, const u8 *data, u64 len);
+void hash_update(HashContext *ctx, const u8 *data, u128 len);
 void hash_finalize(HashContext *ctx, u8 *digest);
 void hash_reset(HashContext *ctx);
 
 // Merkle-Damgård specific functions
 void merkle_damgard_init(HashContext *ctx);
-void merkle_damgard_update(HashContext *ctx, const u8 *data, u64 len);
+void merkle_damgard_update(HashContext *ctx, const u8 *data, u128 len);
 void merkle_damgard_finalize(HashContext *ctx, u8 *digest);
 void merkle_damgard_reset(HashContext *ctx);
 
 // Algorithm-specific compression functions
-void sha512_compress(void *_state, const u8 *block);
-void sha256_compress(void *_state, const u8 *block);
-void md5_compress(void *_state, const u8 *block);
+void sha512_compress(u8 *_state, const u8 *block);
+void sha256_compress(u8 *_state, const u8 *block);
+void md5_compress(u8 *_state, const u8 *block);
 
 // Utils
 u64 to_endian64(u64 value, u32 target_endian);
