@@ -1,12 +1,39 @@
 #include "ft_ssl.h"
 
-static const HashConfig SHA256_CONFIG = {
-  .blocks_size = 64,
-  .length_size = sizeof(u64),
-  .length_endian = BIG_ENDIAN
+static u32 SHA256_STATE[8] = {
+  0x6a09e667,
+  0xbb67ae85,
+  0x3c6ef372,
+  0xa54ff53a,
+  0x510e527f,
+  0x9b05688c,
+  0x1f83d9ab,
+  0x5be0cd19
 };
 
-static const u32 k[64] = {
+static MerkleConfig sha256_config = {
+  .length_size = 8,
+  .length_endian = __ORDER_BIG_ENDIAN__,
+  .compress = sha256_compress,
+  .initial_state = SHA256_STATE,
+  .state_words = 8,
+  .word_size = sizeof(u32),
+};
+
+const HashAlgorithm sha256_algorithm = {
+  .name = "SHA256",
+  .type = HASH_TYPE_MERKLE_DAMGARD,
+  .config = &sha256_config,
+  .digest_size = 32,
+  .block_size = 64,
+  .state_size = 32, // 8 words * 4 bytes
+  .init = merkle_damgard_init,
+  .update = merkle_damgard_update,
+  .finalize = merkle_damgard_finalize,
+  .reset = merkle_damgard_reset
+};
+
+static const u32 sha256_k[64] = {
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
   0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
   0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -25,73 +52,61 @@ static const u32 k[64] = {
   0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-void sha256(const char *string) {
-  MDBuffer  buffer = merkle_damgard_preprocess(string, SHA256_CONFIG);
+void sha256_compress(void *_state, const u8 *block) {
+  u32 *state = (u32 *)_state;
+  u32 w[64];
+  u32 a, b, c, d, e, f, g, h;
 
-  u32 A = 0x6a09e667;
-  u32 B = 0xbb67ae85;
-  u32 C = 0x3c6ef372;
-  u32 D = 0xa54ff53a;
-  u32 E = 0x510e527f;
-  u32 F = 0x9b05688c;
-  u32 G = 0x1f83d9ab;
-  u32 H = 0x5be0cd19;
-
-  for (u32 chunk = 0; chunk < buffer.blocks_count; ++chunk) {
-    u32 w[64];
-
-    for (u32 i = 0; i < 16; ++i) {
-      // Break chunk into sixteen 32-bit big-endian words
-      w[i] = ((u32)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 0] << 24) |
-             ((u32)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 1] << 16) |
-             ((u32)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 2] <<  8) |
-             ((u32)(unsigned char)buffer.data[buffer.blocks_size*chunk + i*4 + 3] <<  0);
-    }
-    for (u32 i = 16; i < 64; ++i) {
-      u32 s0 = (rotu32r(w[i-15], 7)) ^ (rotu32r(w[i-15], 18)) ^ (w[i-15] >> 3);
-      u32 s1 = (rotu32r(w[i-2], 17)) ^ (rotu32r(w[i-2], 19)) ^ (w[i-2] >> 10);
-      w[i] = w[i-16] + s0 + w[i-7] + s1;
-    }
-
-    u32  a = A;
-    u32  b = B;
-    u32  c = C;
-    u32  d = D;
-    u32  e = E;
-    u32  f = F;
-    u32  g = G;
-    u32  h = H;
-
-    const u32 SHA256_ROUNDS = 64;
-    for (u32 i = 0; i < SHA256_ROUNDS; ++i) {
-      u32 s1 = rotu32r(e, 6) ^ rotu32r(e, 11) ^ rotu32r(e, 25);
-      u32 ch = (e & f) ^ ((~e) & g);
-      u32 t1 = h + s1 + ch + k[i] + w[i];
-      u32 s0 = rotu32r(a, 2) ^ rotu32r(a, 13) ^ rotu32r(a, 22);
-      u32 mj = (a & b) ^ (a & c) ^ (b & c);
-      u32 t2 = s0 + mj;
-
-      h = g;
-      g = f;
-      f = e;
-      e = d + t1;
-      d = c;
-      c = b;
-      b = a;
-      a = t1 + t2;
-    }
-
-    A += a;
-    B += b;
-    C += c;
-    D += d;
-    E += e;
-    F += f;
-    G += g;
-    H += h;
+  // Prepare message schedule
+  for (u32 i = 0; i < 16; ++i) {
+    w[i] = ((u32)block[i*4 + 0] << 24) |
+           ((u32)block[i*4 + 1] << 16) |
+           ((u32)block[i*4 + 2] <<  8) |
+           ((u32)block[i*4 + 3] <<  0);
+  }
+  
+  for (u32 i = 16; i < 64; ++i) {
+    u32 s0 = rotu32r(w[i-15], 7) ^ rotu32r(w[i-15], 18) ^ (w[i-15] >> 3);
+    u32 s1 = rotu32r(w[i-2], 17) ^ rotu32r(w[i-2], 19) ^ (w[i-2] >> 10);
+    w[i] = w[i-16] + s0 + w[i-7] + s1;
   }
 
-  printf("%08x%08x%08x%08x%08x%08x%08x%08x\n", A, B, C, D, E, F, G, H);
+  // Initialize working variables
+  a = state[0];
+  b = state[1];
+  c = state[2];
+  d = state[3];
+  e = state[4];
+  f = state[5];
+  g = state[6];
+  h = state[7];
 
-  free(buffer.data);
+  // Main loop
+  for (u32 i = 0; i < 64; ++i) {
+    u32 s1 = rotu32r(e, 6) ^ rotu32r(e, 11) ^ rotu32r(e, 25);
+    u32 ch = (e & f) ^ ((~e) & g);
+    u32 t1 = h + s1 + ch + sha256_k[i] + w[i];
+    u32 s0 = rotu32r(a, 2) ^ rotu32r(a, 13) ^ rotu32r(a, 22);
+    u32 mj = (a & b) ^ (a & c) ^ (b & c);
+    u32 t2 = s0 + mj;
+
+    h = g;
+    g = f;
+    f = e;
+    e = d + t1;
+    d = c;
+    c = b;
+    b = a;
+    a = t1 + t2;
+  }
+
+  // Update state
+  state[0] += a;
+  state[1] += b;
+  state[2] += c;
+  state[3] += d;
+  state[4] += e;
+  state[5] += f;
+  state[6] += g;
+  state[7] += h;
 }

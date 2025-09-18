@@ -8,7 +8,7 @@ extern bool print_sum;
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
-    ft_fprintf(stderr, "usage: ft_ssl command [flags] string\n");
+    ft_fprintf(stderr, "usage: ft_ssl command [flags] [string/file...]\n");
     exit(EXIT_FAILURE);
   }
 
@@ -28,24 +28,20 @@ int main(int argc, char *argv[]) {
   argc -= offset;
   argv += offset;
 
-  int fd = open("/dev/stdin", O_RDONLY | O_NONBLOCK);
-  if (fd == -1) {
-    return (1);
+  if (print_sum && (u32)argc != 0) {
+    for (u32 i = 0; i < (u32)argc; ++i) {
+      hash_string(argv[i], command->algorithm);
+    }
+    return (0);
   }
 
-  char    buffer[1024] = {0};
-  size_t  bytes_read = read(fd, buffer, sizeof(buffer) - 1);
-  
-  if (bytes_read > 0) {
-    command->handler(buffer);
+  if (argc > 0) {
+    for (u32 i = 0; i < (u32)argc; ++i) {
+      hash_file(argv[i], command->algorithm);
+    }
+  } else {
+    hash_stdin(command->algorithm);
   }
 
-  while (argc) {
-    command->handler(*argv);
-    argc -= 1;
-    argv += 1;
-  }
-
-  return (0);
+  return 0;
 }
-
