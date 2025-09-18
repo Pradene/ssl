@@ -3,25 +3,18 @@
 // Helper function to append length based on size
 static void append_message_length(
   u8 *buffer,
-  u64 offset,
   u128 total_bits,
   u32 length_size,
   u32 endian
 ) {
-  if (length_size == 8) {
-    u64 length = to_endian64(total_bits, endian);
-    ft_memcpy(buffer + offset, &length, 8);
-  } else if (length_size == 16) {
-    u64 length_high = to_endian64(0, endian);  // High 64 bits are 0
-    u64 length_low = to_endian64(total_bits, endian);
-    
+  for (u32 i = 0; i < length_size; i++) {
+    u32 byte_index;
     if (endian == __ORDER_BIG_ENDIAN__) {
-      ft_memcpy(buffer + offset, &length_high, 8);
-      ft_memcpy(buffer + offset + 8, &length_low, 8);
+      byte_index = length_size - 1 - i;
     } else {
-      ft_memcpy(buffer + offset, &length_low, 8);
-      ft_memcpy(buffer + offset + 8, &length_high, 8);
+      byte_index = i;
     }
+    buffer[byte_index] = (total_bits >> (i * 8)) & 0xFF;
   }
 }
 
@@ -87,8 +80,7 @@ static void apply_padding(HashContext *ctx, u128 total_bits) {
   
   // Append length
   append_message_length(
-    ctx->buffer,
-    length_field_start,
+    ctx->buffer + length_field_start,
     total_bits, 
     config->length_size,
     config->length_endian
@@ -98,7 +90,6 @@ static void apply_padding(HashContext *ctx, u128 total_bits) {
 void merkle_damgard_init(HashContext *ctx) {
   const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
   
-  // Copy initial state
   ft_memcpy(ctx->state, config->initial_state, config->state_words * config->word_size);
   
   ctx->total_length = 0;
@@ -112,7 +103,6 @@ void merkle_damgard_update(HashContext *ctx, const u8 *data, u128 len) {
   u128 remaining = len;
   u128 offset = 0;
 
-  // Complete partial block if exists
   if (ctx->buffer_length > 0) {
     u32 needed = ctx->algorithm->block_size - ctx->buffer_length;
     u32 to_copy = (remaining < needed) ? remaining : needed;
@@ -128,14 +118,12 @@ void merkle_damgard_update(HashContext *ctx, const u8 *data, u128 len) {
     }
   }
 
-  // Process complete blocks directly
   while (remaining >= ctx->algorithm->block_size) {
     config->compress(ctx->state, data + offset);
     offset += ctx->algorithm->block_size;
     remaining -= ctx->algorithm->block_size;
   }
 
-  // Buffer remaining data
   if (remaining > 0) {
     ft_memcpy(ctx->buffer + ctx->buffer_length, data + offset, remaining);
     ctx->buffer_length += remaining;
@@ -146,13 +134,9 @@ void merkle_damgard_finalize(HashContext *ctx, u8 *digest) {
   const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
   u128 total_bits = ctx->total_length * 8;
 
-  // Apply Merkle-Damgård padding
   apply_padding(ctx, total_bits);
-
-  // Final compression
   config->compress(ctx->state, ctx->buffer);
 
-  // Output digest in correct format
   output_digest(ctx, digest);
 }
 
