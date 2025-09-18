@@ -28,6 +28,18 @@ int main(int argc, char *argv[]) {
   argc -= offset;
   argv += offset;
 
+  int fd = open("/dev/stdin", O_RDONLY | O_NONBLOCK);
+  if (fd == -1) {
+    return (1);
+  }
+
+  char    buffer[1024] = {0};
+  size_t  bytes_read = read(fd, buffer, sizeof(buffer) - 1);
+  
+  if (bytes_read > 0) {
+    command->handler(buffer);
+  }
+
   while (argc) {
     command->handler(*argv);
     argc -= 1;
