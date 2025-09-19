@@ -120,7 +120,6 @@ void sha256_compress(u8 *_state, const u8 *block);
 void sha512_compress(u8 *_state, const u8 *block);
 
 // Utils
-u64 to_endian64(u64 value, u32 target_endian);
 void print_digest(const u8 *digest, u32 size, const char *input, const char *algorithm_name);
 
 // Algorithm instances

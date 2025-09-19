@@ -1,13 +1,5 @@
 #include "ft_ssl.h"
 
-inline u64 to_endian64(u64 value, u32 target_endian) {
-  if ((target_endian == __ORDER_LITTLE_ENDIAN__ && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) ||
-      (target_endian == __ORDER_BIG_ENDIAN__ && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)) {
-    return (__builtin_bswap64(value));
-  }
-  return (value);
-}
-
 void print_digest(const u8 *digest, u32 size, const char *input, const char *algorithm_name) {
   if (!quiet) {
     if (reverse) {
