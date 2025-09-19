@@ -1,19 +1,45 @@
 #include "ft_ssl.h"
 
-static void append_message_length(
-  u8 *buffer,
-  u128 total_bits,
-  u32 length_size,
-  u32 endian
-) {
-  for (u32 i = 0; i < length_size; i++) {
-    u32 byte_index;
-    if (endian == __ORDER_BIG_ENDIAN__) {
-      byte_index = length_size - 1 - i;
-    } else {
-      byte_index = i;
+void merkle_damgard_init(HashContext *ctx) {
+  const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
+  
+  ft_memcpy(ctx->state, config->initial_state, config->state_words * config->word_size);
+  
+  ctx->total_length = 0;
+  ctx->buffer_length = 0;
+}
+
+void merkle_damgard_update(HashContext *ctx, const u8 *data, u128 len) {
+  const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
+  
+  ctx->total_length += len * 8;
+  u128 remaining = len;
+  u128 offset = 0;
+
+  if (ctx->buffer_length > 0) {
+    u32 needed = ctx->algorithm->block_size - ctx->buffer_length;
+    u32 to_copy = (remaining < needed) ? remaining : needed;
+    
+    ft_memcpy(ctx->buffer + ctx->buffer_length, data, to_copy);
+    ctx->buffer_length += to_copy;
+    offset += to_copy;
+    remaining -= to_copy;
+
+    if (ctx->buffer_length == ctx->algorithm->block_size) {
+      config->compress(ctx->state, ctx->buffer);
+      ctx->buffer_length = 0;
     }
-    buffer[byte_index] = (total_bits >> (i * 8)) & 0xFF;
+  }
+
+  while (remaining >= ctx->algorithm->block_size) {
+    config->compress(ctx->state, data + offset);
+    offset += ctx->algorithm->block_size;
+    remaining -= ctx->algorithm->block_size;
+  }
+
+  if (remaining > 0) {
+    ft_memcpy(ctx->buffer + ctx->buffer_length, data + offset, remaining);
+    ctx->buffer_length += remaining;
   }
 }
 
@@ -54,22 +80,38 @@ static void output_digest(HashContext *ctx, u8 *digest) {
   }
 }
 
-// Helper function to apply padding
+static void append_message_length(
+  u8 *buffer,
+  u128 total_bits,
+  u32 length_size,
+  u32 endian
+) {
+  for (u32 i = 0; i < length_size; i++) {
+    u32 byte_index;
+    if (endian == __ORDER_BIG_ENDIAN__) {
+      byte_index = length_size - 1 - i;
+    } else {
+      byte_index = i;
+    }
+    buffer[byte_index] = (total_bits >> (i * 8)) & 0xFF;
+  }
+}
+
 static void apply_padding(HashContext *ctx, u128 total_bits) {
   const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
-  u64 message_length = ctx->buffer_length;
-  
-  ctx->buffer[message_length++] = 0x80;
-  
+
+  ft_memset(ctx->buffer + ctx->buffer_length, 0x80, 1);
+  ctx->buffer_length += 1;
+
   u64 length_field_start = ctx->algorithm->block_size - config->length_size;
-  
-  if (message_length > length_field_start) {
-    ft_memset(ctx->buffer + message_length, 0, ctx->algorithm->block_size - message_length);
+
+  if (ctx->buffer_length > length_field_start) {
+    ft_memset(ctx->buffer + ctx->buffer_length, 0, ctx->algorithm->block_size - ctx->buffer_length);
     config->compress(ctx->state, ctx->buffer);
-    message_length = 0;
+    ctx->buffer_length = 0;
   }
-  
-  ft_memset(ctx->buffer + message_length, 0, length_field_start - message_length);
+
+  ft_memset(ctx->buffer + ctx->buffer_length, 0, length_field_start - ctx->buffer_length);
   
   append_message_length(
     ctx->buffer + length_field_start,
@@ -79,54 +121,10 @@ static void apply_padding(HashContext *ctx, u128 total_bits) {
   );
 }
 
-void merkle_damgard_init(HashContext *ctx) {
-  const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
-  
-  ft_memcpy(ctx->state, config->initial_state, config->state_words * config->word_size);
-  
-  ctx->total_length = 0;
-  ctx->buffer_length = 0;
-}
-
-void merkle_damgard_update(HashContext *ctx, const u8 *data, u128 len) {
-  const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
-  
-  ctx->total_length += len;
-  u128 remaining = len;
-  u128 offset = 0;
-
-  if (ctx->buffer_length > 0) {
-    u32 needed = ctx->algorithm->block_size - ctx->buffer_length;
-    u32 to_copy = (remaining < needed) ? remaining : needed;
-    
-    ft_memcpy(ctx->buffer + ctx->buffer_length, data, to_copy);
-    ctx->buffer_length += to_copy;
-    offset += to_copy;
-    remaining -= to_copy;
-
-    if (ctx->buffer_length == ctx->algorithm->block_size) {
-      config->compress(ctx->state, ctx->buffer);
-      ctx->buffer_length = 0;
-    }
-  }
-
-  while (remaining >= ctx->algorithm->block_size) {
-    config->compress(ctx->state, data + offset);
-    offset += ctx->algorithm->block_size;
-    remaining -= ctx->algorithm->block_size;
-  }
-
-  if (remaining > 0) {
-    ft_memcpy(ctx->buffer + ctx->buffer_length, data + offset, remaining);
-    ctx->buffer_length += remaining;
-  }
-}
-
 void merkle_damgard_finalize(HashContext *ctx, u8 *digest) {
   const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
-  u128 total_bits = ctx->total_length * 8;
 
-  apply_padding(ctx, total_bits);
+  apply_padding(ctx, ctx->total_length);
   config->compress(ctx->state, ctx->buffer);
 
   output_digest(ctx, digest);
