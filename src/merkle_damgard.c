@@ -1,6 +1,5 @@
 #include "ft_ssl.h"
 
-// Helper function to append length based on size
 static void append_message_length(
   u8 *buffer,
   u128 total_bits,
@@ -18,7 +17,6 @@ static void append_message_length(
   }
 }
 
-// Helper function to write a word to digest in the correct byte order
 static void write_word_to_digest(
   u8 *digest,
   u32 word_index,
@@ -37,22 +35,22 @@ static void write_word_to_digest(
   }
 }
 
-// Helper function to output the digest
 static void output_digest(HashContext *ctx, u8 *digest) {
   const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
   
-  for (u32 i = 0; i < config->state_words; i++) {
-    u64 word;
-    if (config->word_size == 4) {
-      word = ((u32 *)ctx->state)[i];
-    } else if (config->word_size == 8) {
-      word = ((u64 *)ctx->state)[i];
-    } else {
-      // Handle other word sizes if needed in the future
-      word = 0;
+  if (config->word_size == 1) {
+    ft_memcpy(digest, ctx->state, config->state_words);
+  } else {
+    for (u32 i = 0; i < config->state_words; i++) {
+      u64 word = 0;
+      
+      u8 *state_bytes = (u8 *)ctx->state;
+      for (u32 j = 0; j < config->word_size && j < 8; j++) {
+        word |= ((u64)state_bytes[i * config->word_size + j]) << (j * 8);
+      }
+
+      write_word_to_digest(digest, i, word, config->word_size, config->length_endian);
     }
-    
-    write_word_to_digest(digest, i, word, config->word_size, config->length_endian);
   }
 }
 
@@ -61,24 +59,18 @@ static void apply_padding(HashContext *ctx, u128 total_bits) {
   const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
   u64 message_length = ctx->buffer_length;
   
-  // Add padding bit
   ctx->buffer[message_length++] = 0x80;
   
-  // Calculate where length field starts
   u64 length_field_start = ctx->algorithm->block_size - config->length_size;
   
-  // Check if we need an additional block
   if (message_length > length_field_start) {
-    // Pad current block and compress
     ft_memset(ctx->buffer + message_length, 0, ctx->algorithm->block_size - message_length);
     config->compress(ctx->state, ctx->buffer);
     message_length = 0;
   }
   
-  // Pad with zeros up to length field
   ft_memset(ctx->buffer + message_length, 0, length_field_start - message_length);
   
-  // Append length
   append_message_length(
     ctx->buffer + length_field_start,
     total_bits, 

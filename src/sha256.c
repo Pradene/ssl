@@ -33,7 +33,7 @@ const HashAlgorithm sha256_algorithm = {
   .reset = merkle_damgard_reset
 };
 
-static const u32 sha256_k[64] = {
+static const u32 SHA256_K[64] = {
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
   0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
   0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -84,7 +84,7 @@ void sha256_compress(u8 *_state, const u8 *block) {
   for (u32 i = 0; i < 64; ++i) {
     u32 s1 = ROTR32(e, 6) ^ ROTR32(e, 11) ^ ROTR32(e, 25);
     u32 ch = (e & f) ^ ((~e) & g);
-    u32 t1 = h + s1 + ch + sha256_k[i] + w[i];
+    u32 t1 = h + s1 + ch + SHA256_K[i] + w[i];
     u32 s0 = ROTR32(a, 2) ^ ROTR32(a, 13) ^ ROTR32(a, 22);
     u32 mj = (a & b) ^ (a & c) ^ (b & c);
     u32 t2 = s0 + mj;
