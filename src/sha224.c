@@ -1,30 +1,30 @@
 #include "ft_ssl.h"
 
-static u32 SHA256_STATE[8] = {
-  0x6a09e667,
-  0xbb67ae85,
-  0x3c6ef372,
-  0xa54ff53a,
-  0x510e527f,
-  0x9b05688c,
-  0x1f83d9ab,
-  0x5be0cd19
+static u32 SHA224_STATE[8] = {
+  0xc1059ed8,
+  0x367cd507,
+  0x3070dd17,
+  0xf70e5939,
+  0xffc00b31,
+  0x68581511,
+  0x64f98fa7,
+  0xbefa4fa4
 };
 
-static MerkleConfig sha256_config = {
+static MerkleConfig sha224_config = {
   .length_size = 8,
   .length_endian = __ORDER_BIG_ENDIAN__,
-  .compress = sha256_compress,
-  .initial_state = (u8 *)SHA256_STATE,
+  .compress = sha224_compress,
+  .initial_state = (u8 *)SHA224_STATE,
   .state_words = 8,
   .word_size = sizeof(u32),
 };
 
-const HashAlgorithm sha256_algorithm = {
-  .name = "SHA2-256",
+const HashAlgorithm sha224_algorithm = {
+  .name = "SHA2-224",
   .type = HASH_TYPE_MERKLE_DAMGARD,
-  .config = &sha256_config,
-  .digest_size = 32,
+  .config = &sha224_config,
+  .digest_size = 28,
   .block_size = 64,
   .state_size = 32,
   .init = merkle_damgard_init,
@@ -33,7 +33,7 @@ const HashAlgorithm sha256_algorithm = {
   .reset = merkle_damgard_reset
 };
 
-static const u32 SHA256_K[64] = {
+static const u32 SHA224_K[64] = {
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
   0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
   0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -52,7 +52,7 @@ static const u32 SHA256_K[64] = {
   0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-void sha256_compress(u8 *_state, const u8 *block) {
+void sha224_compress(u8 *_state, const u8 *block) {
   u32 *state = (u32 *)_state;
   u32 w[64];
   
@@ -84,7 +84,7 @@ void sha256_compress(u8 *_state, const u8 *block) {
   for (u32 i = 0; i < 64; ++i) {
     u32 s1 = ROTR32(e, 6) ^ ROTR32(e, 11) ^ ROTR32(e, 25);
     u32 ch = (e & f) ^ ((~e) & g);
-    u32 t1 = h + s1 + ch + SHA256_K[i] + w[i];
+    u32 t1 = h + s1 + ch + SHA224_K[i] + w[i];
     u32 s0 = ROTR32(a, 2) ^ ROTR32(a, 13) ^ ROTR32(a, 22);
     u32 mj = (a & b) ^ (a & c) ^ (b & c);
     u32 t2 = s0 + mj;

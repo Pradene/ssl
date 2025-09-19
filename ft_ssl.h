@@ -115,17 +115,19 @@ void merkle_damgard_finalize(HashContext *ctx, u8 *digest);
 void merkle_damgard_reset(HashContext *ctx);
 
 // Algorithm-specific compression functions
-void sha512_compress(u8 *_state, const u8 *block);
-void sha256_compress(u8 *_state, const u8 *block);
 void md5_compress(u8 *_state, const u8 *block);
+void sha256_compress(u8 *_state, const u8 *block);
+void sha512_compress(u8 *_state, const u8 *block);
 
 // Utils
 u64 to_endian64(u64 value, u32 target_endian);
 void print_digest(const u8 *digest, u32 size, const char *input, const char *algorithm_name);
 
 // Algorithm instances
-extern const HashAlgorithm sha256_algorithm;
-extern const HashAlgorithm sha512_algorithm;
 extern const HashAlgorithm md5_algorithm;
+extern const HashAlgorithm sha224_algorithm;
+extern const HashAlgorithm sha256_algorithm;
+extern const HashAlgorithm sha384_algorithm;
+extern const HashAlgorithm sha512_algorithm;
 
 #endif // FT_SSL_H

@@ -21,7 +21,7 @@ static MerkleConfig sha512_config = {
 };
 
 const HashAlgorithm sha512_algorithm = {
-  .name = "SHA512",
+  .name = "SHA2-512",
   .type = HASH_TYPE_MERKLE_DAMGARD,
   .config = &sha512_config,
   .digest_size = 64,

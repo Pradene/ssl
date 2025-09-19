@@ -42,7 +42,9 @@ u32 parse_options(u32 argc, char *argv[]) {
 
 Command commands[] = {
   {"md5", &md5_algorithm},
+  {"sha224", &sha224_algorithm},
   {"sha256", &sha256_algorithm},
+  {"sha384", &sha384_algorithm},
   {"sha512", &sha512_algorithm},
   {NULL, NULL}
 };
