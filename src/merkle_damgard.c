@@ -2,16 +2,16 @@
 
 void merkle_damgard_init(HashContext *ctx) {
   const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
-  
+
   ft_memcpy(ctx->state, config->initial_state, config->state_words * config->word_size);
-  
+
   ctx->total_length = 0;
   ctx->buffer_length = 0;
 }
 
 void merkle_damgard_update(HashContext *ctx, const u8 *data, u128 len) {
   const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
-  
+
   ctx->total_length += len * 8;
   u128 remaining = len;
   u128 offset = 0;
@@ -61,7 +61,7 @@ static void write_word_to_digest(
   }
 }
 
-static void output_digest(HashContext *ctx, u8 *digest) {
+static void format_digest(HashContext *ctx, u8 *digest) {
   const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
   
   if (config->word_size == 1) {
@@ -127,7 +127,7 @@ void merkle_damgard_finalize(HashContext *ctx, u8 *digest) {
   apply_padding(ctx, ctx->total_length);
   config->compress(ctx->state, ctx->buffer);
 
-  output_digest(ctx, digest);
+  format_digest(ctx, digest);
 }
 
 void merkle_damgard_reset(HashContext *ctx) {

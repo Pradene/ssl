@@ -6,19 +6,6 @@ extern bool reverse;     // -r
 extern bool string;      // -s
 extern bool quiet;       // -q
 
-static int stdin_has_data(void) {
-  fd_set          readfds;
-  struct timeval  tv;
-
-  FD_ZERO(&readfds);
-  FD_SET(STDIN_FILENO, &readfds);
-
-  tv.tv_sec = 0;
-  tv.tv_usec = 0;
-
-  return (select(1, &readfds, NULL, NULL, &tv) > 0);
-}
-
 int main(int argc, char *argv[]) {
   if (argc < 2) {
     ft_fprintf(stderr, "usage: ft_ssl command [flags] [string/file...]\n");
@@ -41,16 +28,18 @@ int main(int argc, char *argv[]) {
   argc -= offset;
   argv += offset;
 
-  // Read from stdin only if data is available (non-blocking)
-  if (stdin_has_data()) {
+  // If -p flag set, read stdin first (only once)
+  if (print_stdin) {
     hash_stdin(command->algorithm);
   }
 
   // Handle -s flag: hash one string, then process remaining args as files
+  bool processed = false;
   if (string && argc > 0) {
     hash_string(argv[0], command->algorithm);
     --argc;
     ++argv;
+    processed = true;
   }
 
   // Process remaining arguments as files
@@ -58,8 +47,11 @@ int main(int argc, char *argv[]) {
     for (u32 i = 0; i < (u32)argc; ++i) {
       hash_file(argv[i], command->algorithm);
     }
-  } else if (!stdin_has_data() && !string) {
-    // No files/strings: block on stdin read
+    processed = true;
+  }
+
+  // If nothing was processed and -p not set, read from stdin
+  if (!processed && !print_stdin) {
     hash_stdin(command->algorithm);
   }
 
