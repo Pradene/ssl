@@ -1,10 +1,10 @@
 #include "ft_ssl.h"
 
 // Flags global variables
-extern bool print_stdin;
-extern bool reverse;
-extern bool string;
-extern bool quiet;
+extern bool print_stdin; // -p
+extern bool reverse;     // -r
+extern bool string;      // -s
+extern bool quiet;       // -q
 
 static int stdin_has_data(void) {
   fd_set          readfds;
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     for (u32 i = 0; i < (u32)argc; ++i) {
       hash_file(argv[i], command->algorithm);
     }
-  } else if (!string) {
+  } else if (!stdin_has_data() && !string) {
     // No files/strings: block on stdin read
     hash_stdin(command->algorithm);
   }
