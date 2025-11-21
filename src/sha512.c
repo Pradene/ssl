@@ -71,7 +71,7 @@ void sha512_compress(u8 *_state, const u8 *block) {
   u64 h = state[7];
 
   // Convert block to big-endian words
-  for (u8 i = 0; i < 16; ++i) {
+  for (u32 i = 0; i < 16; ++i) {
     w[i] = ((u64)block[i*8 + 0] << 56) |
            ((u64)block[i*8 + 1] << 48) |
            ((u64)block[i*8 + 2] << 40) |
@@ -82,14 +82,14 @@ void sha512_compress(u8 *_state, const u8 *block) {
            ((u64)block[i*8 + 7] <<  0);
   }
   
-  for (u8 i = 16; i < 80; ++i) {
+  for (u32 i = 16; i < 80; ++i) {
     u64 s0 = ROTR64(w[i-15], 1) ^ ROTR64(w[i-15], 8) ^ (w[i-15] >> 7);
     u64 s1 = ROTR64(w[i-2], 19) ^ ROTR64(w[i-2], 61) ^ (w[i-2] >> 6);
     w[i] = w[i-16] + s0 + w[i-7] + s1;
   }
 
   // Main loop
-  for (u8 i = 0; i < 80; ++i) {
+  for (u32 i = 0; i < 80; ++i) {
     u64 s1 = ROTR64(e, 14) ^ ROTR64(e, 18) ^ ROTR64(e, 41);
     u64 ch = (e & f) ^ ((~e) & g);
     u64 t1 = h + s1 + ch + SHA512_K[i] + w[i];

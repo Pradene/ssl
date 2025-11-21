@@ -87,10 +87,10 @@ typedef struct {
 } Command;
 
 // Global flags
-extern bool quiet;
-extern bool print_input;
+extern bool print_stdin;
 extern bool reverse;
-extern bool print_sum;
+extern bool string;
+extern bool quiet;
 
 // Function declarations
 Command *parse_command(u32 argc, char *argv[]);

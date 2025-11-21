@@ -3,7 +3,7 @@
 void hash_string(const char *string, const HashAlgorithm *alg) {
   HashContext *ctx = hash_create(alg);
   if (!ctx) {
-    ft_fprintf(stderr, "Error: Failed to create hash context\n");
+    ft_fprintf(stderr, "ft_ssl: error: Failed to create hash context\n");
     return ;
   }
 
@@ -19,13 +19,13 @@ void hash_string(const char *string, const HashAlgorithm *alg) {
 void hash_file(const char *filename, const HashAlgorithm *alg) {
   int fd = open(filename, O_RDONLY);
   if (fd == -1) {
-    ft_fprintf(stderr, "Error: Cannot open file %s\n", filename);
+    ft_fprintf(stderr, "ft_ssl: error: Cannot open file '%s'\n", filename);
     return ;
   }
 
   HashContext *ctx = hash_create(alg);
   if (!ctx) {
-    ft_fprintf(stderr, "Error: Failed to create hash context\n");
+    ft_fprintf(stderr, "ft_ssl: error: Failed to create hash context\n");
     close(fd);
     return ;
   }
@@ -47,7 +47,7 @@ void hash_file(const char *filename, const HashAlgorithm *alg) {
 void hash_stdin(const HashAlgorithm *alg) {
   HashContext *ctx = hash_create(alg);
   if (!ctx) {
-    ft_fprintf(stderr, "Error: Failed to create hash context\n");
+    ft_fprintf(stderr, "ft_ssl: error: Failed to create hash context\n");
     return ;
   }
 
@@ -55,8 +55,11 @@ void hash_stdin(const HashAlgorithm *alg) {
   ssize_t bytes_read;
   while ((bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer))) > 0) {
     hash_update(ctx, buffer, bytes_read);
+    if (print_stdin) {
+      ft_printf("%s", buffer);
+    }
   }
-  
+
   u8 digest[64] = {0};
   hash_finalize(ctx, digest);
   print_digest(digest, alg->digest_size, NULL, alg->name);
