@@ -120,7 +120,7 @@ void sha256_compress(u8 *_state, const u8 *block);
 void sha512_compress(u8 *_state, const u8 *block);
 
 // Utils
-void print_digest(const u8 *digest, u32 size, const char *input, const char *algorithm_name);
+void print_digest(const u8 *digest, u32 size, const char *input, const char *algorithm_name, bool is_string);
 
 // Algorithm instances
 extern const HashAlgorithm md5_algorithm;

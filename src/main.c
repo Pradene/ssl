@@ -25,8 +25,8 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  argc -= 1;
-  argv += 1;
+  --argc;
+  ++argv;
 
   Command *command = parse_command(argc, argv);
   if (command == NULL) {
@@ -34,8 +34,8 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  argc -= 1;
-  argv += 1;
+  --argc;
+  ++argv;
 
   u32 offset = parse_options(argc, argv);
   argc -= offset;
@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
   // Handle -s flag: hash one string, then process remaining args as files
   if (string && argc > 0) {
     hash_string(argv[0], command->algorithm);
-    argc -= 1;
-    argv += 1;
+    --argc;
+    ++argv;
   }
 
   // Process remaining arguments as files
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     for (u32 i = 0; i < (u32)argc; ++i) {
       hash_file(argv[i], command->algorithm);
     }
-  } else {
+  } else if (!string) {
     // No files/strings: block on stdin read
     hash_stdin(command->algorithm);
   }

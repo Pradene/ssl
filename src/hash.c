@@ -11,7 +11,7 @@ void hash_string(const char *string, const HashAlgorithm *alg) {
   
   u8 digest[64] = {0};
   hash_finalize(ctx, digest);
-  print_digest(digest, alg->digest_size, string, alg->name);
+  print_digest(digest, alg->digest_size, string, alg->name, true);
   
   hash_destroy(ctx);
 }
@@ -38,7 +38,7 @@ void hash_file(const char *filename, const HashAlgorithm *alg) {
   
   u8 digest[64] = {0};
   hash_finalize(ctx, digest);
-  print_digest(digest, alg->digest_size, filename, alg->name);
+  print_digest(digest, alg->digest_size, filename, alg->name, false);
   
   hash_destroy(ctx);
   close(fd);
@@ -62,7 +62,7 @@ void hash_stdin(const HashAlgorithm *alg) {
 
   u8 digest[64] = {0};
   hash_finalize(ctx, digest);
-  print_digest(digest, alg->digest_size, NULL, alg->name);
+  print_digest(digest, alg->digest_size, NULL, alg->name, false);
   
   hash_destroy(ctx);
 }
