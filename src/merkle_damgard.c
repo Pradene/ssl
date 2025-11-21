@@ -1,7 +1,7 @@
 #include "ft_ssl.h"
 
 void merkle_damgard_init(HashContext *ctx) {
-  const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
+  MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
 
   ft_memcpy(ctx->state, config->initial_state, config->state_words * config->word_size);
 
@@ -9,8 +9,8 @@ void merkle_damgard_init(HashContext *ctx) {
   ctx->buffer_length = 0;
 }
 
-void merkle_damgard_update(HashContext *ctx, const u8 *data, u128 len) {
-  const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
+void merkle_damgard_update(HashContext *ctx, u8 *data, u128 len) {
+  MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
 
   ctx->total_length += len * 8;
   u128 remaining = len;
@@ -62,7 +62,7 @@ static void write_word_to_digest(
 }
 
 static void format_digest(HashContext *ctx, u8 *digest) {
-  const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
+  MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
   
   if (config->word_size == 1) {
     ft_memcpy(digest, ctx->state, config->state_words);
@@ -98,7 +98,7 @@ static void append_message_length(
 }
 
 static void apply_padding(HashContext *ctx, u128 total_bits) {
-  const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
+  MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
 
   ft_memset(ctx->buffer + ctx->buffer_length, 0x80, 1);
   ctx->buffer_length += 1;
@@ -122,7 +122,7 @@ static void apply_padding(HashContext *ctx, u128 total_bits) {
 }
 
 void merkle_damgard_finalize(HashContext *ctx, u8 *digest) {
-  const MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
+  MerkleConfig *config = (MerkleConfig *)ctx->algorithm->config;
 
   apply_padding(ctx, ctx->total_length);
   config->compress(ctx->state, ctx->buffer);

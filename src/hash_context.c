@@ -1,6 +1,6 @@
 #include "ft_ssl.h"
 
-HashContext *hash_create(const HashAlgorithm *algorithm) {
+HashContext *hash_create(HashAlgorithm *algorithm) {
   HashContext *ctx = malloc(sizeof(HashContext));
   if (!ctx) {
     return (NULL);
@@ -29,7 +29,7 @@ void hash_destroy(HashContext *ctx) {
   }
 }
 
-void hash_update(HashContext *ctx, const u8 *data, u128 len) {
+void hash_update(HashContext *ctx, u8 *data, u128 len) {
   ctx->algorithm->update(ctx, data, len);
 }
 

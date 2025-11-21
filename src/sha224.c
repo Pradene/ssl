@@ -20,7 +20,7 @@ static MerkleConfig sha224_config = {
   .word_size = sizeof(u32),
 };
 
-const HashAlgorithm sha224_algorithm = {
+HashAlgorithm sha224_algorithm = {
   .name = "SHA2-224",
   .type = HASH_TYPE_MERKLE_DAMGARD,
   .config = &sha224_config,

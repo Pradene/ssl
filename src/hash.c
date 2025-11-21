@@ -1,30 +1,29 @@
-// hash.c
 #include "ft_ssl.h"
 
-void hash_string(const char *string, const HashAlgorithm *alg) {
-  HashContext *ctx = hash_create(alg);
+void hash_string(char *string, HashAlgorithm *algorithm) {
+  HashContext *ctx = hash_create(algorithm);
   if (!ctx) {
     ft_fprintf(stderr, "ft_ssl: error: Failed to create hash context\n");
     return ;
   }
 
-  hash_update(ctx, (const u8 *)string, ft_strlen(string));
+  hash_update(ctx, ( u8 *)string, ft_strlen(string));
   
   u8 digest[64] = {0};
   hash_finalize(ctx, digest);
-  output_digest(digest, alg->digest_size, string, alg->name, 1);  // 1 = string
+  output_digest(algorithm, digest, string, INPUT_STRING);
   
   hash_destroy(ctx);
 }
 
-void hash_file(const char *filename, const HashAlgorithm *alg) {
+void hash_file(char *filename, HashAlgorithm *algorithm) {
   int fd = open(filename, O_RDONLY);
   if (fd == -1) {
     ft_fprintf(stderr, "ft_ssl: error: Failed to open '%s'\n", filename);
     return ;
   }
 
-  HashContext *ctx = hash_create(alg);
+  HashContext *ctx = hash_create(algorithm);
   if (!ctx) {
     ft_fprintf(stderr, "ft_ssl: error: Failed to create hash context\n");
     close(fd);
@@ -39,14 +38,14 @@ void hash_file(const char *filename, const HashAlgorithm *alg) {
 
   u8 digest[64] = {0};
   hash_finalize(ctx, digest);
-  output_digest(digest, alg->digest_size, filename, alg->name, 2);  // 2 = file
+  output_digest(algorithm, digest, filename, INPUT_FILE);
   
   hash_destroy(ctx);
   close(fd);
 }
 
-void hash_stdin(const HashAlgorithm *alg) {
-  HashContext *ctx = hash_create(alg);
+void hash_stdin(HashAlgorithm *algorithm) {
+  HashContext *ctx = hash_create(algorithm);
   if (!ctx) {
     ft_fprintf(stderr, "ft_ssl: error: Failed to create hash context\n");
     return ;
@@ -76,13 +75,13 @@ void hash_stdin(const HashAlgorithm *alg) {
   // Strip trailing newline for display (but it was hashed)
   if (stdin_copy && stdin_len > 0 && stdin_copy[stdin_len - 1] == '\n') {
     stdin_copy[stdin_len - 1] = '\0';
-    output_digest(digest, alg->digest_size, stdin_copy, alg->name, 3);  // 3 = stdin
-  } else if (stdin_copy) {
-    output_digest(digest, alg->digest_size, stdin_copy, alg->name, 3);
-  } else {
-    output_digest(digest, alg->digest_size, NULL, alg->name, 0);  // no input
+  }
+
+  output_digest(algorithm, digest, stdin_copy, INPUT_STDIN);
+  
+  if (stdin_copy) {
+    free(stdin_copy);
   }
   
-  if (stdin_copy) free(stdin_copy);
   hash_destroy(ctx);
 }

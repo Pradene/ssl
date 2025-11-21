@@ -20,7 +20,7 @@ static MerkleConfig sha256_config = {
   .word_size = sizeof(u32),
 };
 
-const HashAlgorithm sha256_algorithm = {
+HashAlgorithm sha256_algorithm = {
   .name = "SHA2-256",
   .type = HASH_TYPE_MERKLE_DAMGARD,
   .config = &sha256_config,
@@ -33,7 +33,7 @@ const HashAlgorithm sha256_algorithm = {
   .reset = merkle_damgard_reset
 };
 
-static const u32 SHA256_K[64] = {
+static u32 SHA256_K[64] = {
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
   0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
   0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -52,7 +52,7 @@ static const u32 SHA256_K[64] = {
   0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-void sha256_compress(u8 *_state, const u8 *block) {
+void sha256_compress(u8 *_state, u8 *block) {
   u32 *state = (u32 *)_state;
   u32 w[64];
   

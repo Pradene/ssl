@@ -16,7 +16,7 @@ static MerkleConfig md5_config = {
   .word_size = sizeof(u32),
 };
 
-const HashAlgorithm md5_algorithm = {
+HashAlgorithm md5_algorithm = {
   .name = "MD5",
   .type = HASH_TYPE_MERKLE_DAMGARD,
   .config = &md5_config,
@@ -29,7 +29,7 @@ const HashAlgorithm md5_algorithm = {
   .reset = merkle_damgard_reset
 };
 
-static const u32 MD5_K[64] = {
+static  u32 MD5_K[64] = {
   0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
   0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
   0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
@@ -48,14 +48,14 @@ static const u32 MD5_K[64] = {
   0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 };
 
-static const u32 MD5_S[64] = {
+static  u32 MD5_S[64] = {
   7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,
   5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,
   4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,
   6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21
 };
 
-static const u32 MD5_G[64] = {
+static  u32 MD5_G[64] = {
   0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
   1,  6, 11,  0,  5, 10, 15,  4,  9, 14,  3,  8, 13,  2,  7, 12,
   5,  8, 11, 14,  1,  4,  7, 10, 13,  0,  3,  6,  9, 12, 15,  2,
@@ -75,7 +75,7 @@ static inline u32 MD5_F(u32 x, u32 y, u32 z, u32 i) {
   return (f_functions[i >> 4](x, y, z));
 }
 
-void md5_compress(u8 *_state, const u8 *block) {
+void md5_compress(u8 *_state, u8 *block) {
   u32 *state = (u32 *)_state;
   u32 w[16];
 
