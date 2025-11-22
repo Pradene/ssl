@@ -21,7 +21,7 @@ static MerkleConfig sha224_config = {
 };
 
 HashAlgorithm sha224_algorithm = {
-  .name = "SHA2-224",
+  .name = "SHA224",
   .type = HASH_TYPE_MERKLE_DAMGARD,
   .config = &sha224_config,
   .digest_size = 28,

@@ -21,7 +21,7 @@ static MerkleConfig sha384_config = {
 };
 
 HashAlgorithm sha384_algorithm = {
-  .name = "SHA2-384",
+  .name = "SHA384",
   .type = HASH_TYPE_MERKLE_DAMGARD,
   .config = &sha384_config,
   .digest_size = 48,

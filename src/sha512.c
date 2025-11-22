@@ -21,7 +21,7 @@ static MerkleConfig sha512_config = {
 };
 
 HashAlgorithm sha512_algorithm = {
-  .name = "SHA2-512",
+  .name = "SHA512",
   .type = HASH_TYPE_MERKLE_DAMGARD,
   .config = &sha512_config,
   .digest_size = 64,
@@ -81,7 +81,7 @@ void sha512_compress(u8 *_state, u8 *block) {
            ((u64)block[i*8 + 6] <<  8) |
            ((u64)block[i*8 + 7] <<  0);
   }
-  
+
   for (u32 i = 16; i < 80; ++i) {
     u64 s0 = ROTR64(w[i-15], 1) ^ ROTR64(w[i-15], 8) ^ (w[i-15] >> 7);
     u64 s1 = ROTR64(w[i-2], 19) ^ ROTR64(w[i-2], 61) ^ (w[i-2] >> 6);

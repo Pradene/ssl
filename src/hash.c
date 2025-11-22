@@ -8,11 +8,11 @@ void hash_string(char *string, HashAlgorithm *algorithm) {
   }
 
   hash_update(ctx, ( u8 *)string, ft_strlen(string));
-  
+
   u8 digest[64] = {0};
   hash_finalize(ctx, digest);
   output_digest(algorithm, digest, string, INPUT_STRING);
-  
+
   hash_destroy(ctx);
 }
 
@@ -39,7 +39,7 @@ void hash_file(char *filename, HashAlgorithm *algorithm) {
   u8 digest[64] = {0};
   hash_finalize(ctx, digest);
   output_digest(algorithm, digest, filename, INPUT_FILE);
-  
+
   hash_destroy(ctx);
   close(fd);
 }
@@ -78,10 +78,10 @@ void hash_stdin(HashAlgorithm *algorithm) {
   }
 
   output_digest(algorithm, digest, stdin_copy, INPUT_STDIN);
-  
+
   if (stdin_copy) {
     free(stdin_copy);
   }
-  
+
   hash_destroy(ctx);
 }
